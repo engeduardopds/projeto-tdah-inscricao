@@ -111,7 +111,7 @@
 
     <script>
         const CONTRACT_VERSION = 'v1.0';
-        const CONTRACT_HASH    = '88559760E4DAF2CEF94D9F5B7069CBCC9A5196106CD771227DB2500EFFBEDD0E';
+        const CONTRACT_HASH = '88559760E4DAF2CEF94D9F5B7069CBCC9A5196106CD771227DB2500EFFBEDD0E';
         const digits = s => (s || '').replace(/\D/g, '');
         const form = document.getElementById('enrollment-form');
         const submitButton = document.getElementById('submit-button');
@@ -129,7 +129,6 @@
             buttonLoader.classList.remove('hidden');
 
             const formData = new FormData(form);
-            const formData = new FormData(form);
             const data = {
                 name:   formData.get('name'),
                 email:  formData.get('email'),
@@ -138,19 +137,10 @@
                 modality: formData.get('modality'),
                 contract: formData.get('contract') === 'on',
                 contractVersion: CONTRACT_VERSION,
-                contractHash:    CONTRACT_HAS
+                contractHash:    CONTRACT_HASH
             };
                         
             try {
-                // A URL aponta para nossa Netlify Function
-                const response = await fetch('/.netlify/functions/checkout', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify(data),
-                });
-
                 const res = await fetch('/.netlify/functions/checkout', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
@@ -176,3 +166,4 @@
 </body>
 
 </html>
+
