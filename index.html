@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Fazendo as Pazes com o seu TDAH - Inscrição</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #F8F7F2;
+            color: #1A2A4C;
+        }
+        .loader {
+            border-top-color: #3498db;
+            animation: spin 1s linear infinite;
+        }
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body class="flex items-center justify-center min-h-screen p-4">
+
+    <div class="w-full max-w-lg mx-auto">
+
+        <!-- Header -->
+        <header class="text-center mb-8">
+            <h1 class="text-3xl md:text-4xl font-bold text-[#1A2A4C]">Fazendo as Pazes com o seu TDAH</h1>
+            <p class="mt-2 text-lg text-[#1A2A4C]/80">Preencha os dados abaixo para garantir sua vaga.</p>
+        </header>
+
+        <main class="bg-white rounded-2xl shadow-lg p-6 md:p-8 transition-all duration-300">
+            <form id="enrollment-form">
+                <div class="space-y-5">
+                    <!-- Nome -->
+                    <div>
+                        <label for="name" class="block text-sm font-medium text-[#1A2A4C]/90">Nome Completo</label>
+                        <input type="text" id="name" name="name" required class="mt-1 block w-full px-4 py-3 bg-gray-50 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-[#4B3F8F] focus:border-transparent transition" placeholder="Seu nome completo">
+                    </div>
+                    
+                    <!-- E-mail -->
+                    <div>
+                        <label for="email" class="block text-sm font-medium text-[#1A2A4C]/90">E-mail</label>
+                        <input type="email" id="email" name="email" required class="mt-1 block w-full px-4 py-3 bg-gray-50 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-[#4B3F8F] focus:border-transparent transition" placeholder="seu@email.com">
+                    </div>
+
+                    <!-- CPF -->
+                    <div>
+                        <label for="cpf" class="block text-sm font-medium text-[#1A2A4C]/90">CPF</label>
+                        <input type="text" id="cpf" name="cpf" required class="mt-1 block w-full px-4 py-3 bg-gray-50 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-[#4B3F8F] focus:border-transparent transition" placeholder="000.000.000-00">
+                    </div>
+
+                    <!-- Celular -->
+                    <div>
+                        <label for="phone" class="block text-sm font-medium text-[#1A2A4C]/90">Celular (com DDD)</label>
+                        <input type="tel" id="phone" name="phone" required class="mt-1 block w-full px-4 py-3 bg-gray-50 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-[#4B3F8F] focus:border-transparent transition" placeholder="(99) 99999-9999">
+                    </div>
+
+                    <!-- Modalidade -->
+                    <div>
+                         <label class="block text-sm font-medium text-[#1A2A4C]/90">Modalidade do Curso</label>
+                         <div class="mt-2 grid grid-cols-1 sm:grid-cols-2 gap-4">
+                            <label for="modality-online" class="flex items-center p-4 border border-gray-300 rounded-lg cursor-pointer hover:bg-gray-50 transition has-[:checked]:bg-[#5DBA8B]/10 has-[:checked]:border-[#5DBA8B] has-[:checked]:ring-2 has-[:checked]:ring-[#5DBA8B]">
+                                <input type="radio" id="modality-online" name="modality" value="Online" checked class="h-4 w-4 text-[#5DBA8B] focus:ring-[#4A9E75] border-gray-300">
+                                <span class="ml-3 text-base font-medium text-[#1A2A4C]">Online</span>
+                            </label>
+                             <label for="modality-presencial" class="flex items-center p-4 border border-gray-300 rounded-lg cursor-pointer hover:bg-gray-50 transition has-[:checked]:bg-[#4B3F8F]/10 has-[:checked]:border-[#4B3F8F] has-[:checked]:ring-2 has-[:checked]:ring-[#4B3F8F]">
+                                <input type="radio" id="modality-presencial" name="modality" value="Presencial" class="h-4 w-4 text-[#4B3F8F] focus:ring-[#3A2F6F] border-gray-300">
+                                <span class="ml-3 text-base font-medium text-[#1A2A4C]">Presencial</span>
+                            </label>
+                         </div>
+                    </div>
+
+                    <!-- Contrato -->
+                    <div class="flex items-start">
+                        <div class="flex items-center h-5">
+                            <input id="contract" name="contract" type="checkbox" required class="focus:ring-[#4B3F8F] h-4 w-4 text-[#4B3F8F] border-gray-300 rounded">
+                        </div>
+                        <div class="ml-3 text-sm">
+                            <label for="contract" class="font-medium text-[#1A2A4C]/90">
+                                Li e aceito o 
+                                <!-- TODO: Troque '#' pelo link real do seu contrato -->
+                                <a href="#" target="_blank" rel="noopener noreferrer" class="text-[#4B3F8F] hover:underline">contrato v1.0</a>.
+                            </label>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Botão de Envio -->
+                <div class="mt-8">
+                    <button type="submit" id="submit-button" class="w-full flex justify-center items-center text-white bg-[#5DBA8B] hover:bg-[#4A9E75] transition-all duration-300 font-bold py-4 px-6 rounded-xl text-lg shadow-md hover:shadow-lg focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#5DBA8B] disabled:opacity-50 disabled:cursor-not-allowed">
+                        <span class="button-text">Ir para o Pagamento</span>
+                        <div class="loader ease-linear rounded-full border-4 border-t-4 border-gray-200 h-6 w-6 ml-3 hidden"></div>
+                    </button>
+                </div>
+            </form>
+
+            <!-- Mensagens de Erro/Sucesso -->
+            <div id="message-container" class="mt-4 text-center text-red-600 font-medium"></div>
+
+        </main>
+        <footer class="text-center mt-8">
+            <p class="text-sm text-[#1A2A4C]/60">&copy; 2025 Fazendo as Pazes com o seu TDAH. Todos os direitos reservados.</p>
+        </footer>
+
+    </div>
+
+    <script>
+        const form = document.getElementById('enrollment-form');
+        const submitButton = document.getElementById('submit-button');
+        const buttonText = submitButton.querySelector('.button-text');
+        const buttonLoader = submitButton.querySelector('.loader');
+        const messageContainer = document.getElementById('message-container');
+
+        form.addEventListener('submit', async (event) => {
+            event.preventDefault();
+            messageContainer.textContent = '';
+
+            // Desabilitar botão e mostrar loader
+            submitButton.disabled = true;
+            buttonText.classList.add('hidden');
+            buttonLoader.classList.remove('hidden');
+
+            const formData = new FormData(form);
+            const data = {
+                name: formData.get('name'),
+                email: formData.get('email'),
+                cpf: formData.get('cpf'),
+                phone: formData.get('phone'),
+                modality: formData.get('modality'),
+                contract: formData.get('contract') === 'on',
+                // Enviamos a versão do contrato para validação no backend
+                contractVersion: 'v1.0' 
+            };
+
+            try {
+                // A URL aponta para nossa Netlify Function
+                const response = await fetch('/.netlify/functions/checkout', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(data),
+                });
+
+                const result = await response.json();
+
+                if (!response.ok) {
+                    throw new Error(result.error || 'Ocorreu um erro. Tente novamente.');
+                }
+                
+                // Se tudo deu certo, redirecionamos o usuário para a URL de pagamento
+                window.location.href = result.paymentUrl;
+
+            } catch (error) {
+                messageContainer.textContent = error.message;
+                // Reabilitar botão e esconder loader em caso de erro
+                submitButton.disabled = false;
+                buttonText.classList.remove('hidden');
+                buttonLoader.classList.add('hidden');
+            }
+        });
+    </script>
+</body>
+</html>

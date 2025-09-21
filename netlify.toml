@@ -1,0 +1,12 @@
+# Este arquivo informa ao Netlify onde encontrar suas funções.
+# Ele deve estar na raiz do seu projeto.
+
+[build]
+  # Comando para instalar as dependências (como o axios) antes de implantar as funções.
+  command = "npm install"
+  # O diretório onde as funções compiladas serão colocadas.
+  functions = "netlify/functions"
+
+[functions]
+  # Especifica o bundler a ser usado. 'esbuild' é rápido e recomendado.
+  node_bundler = "esbuild"
