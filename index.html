@@ -84,7 +84,7 @@
                             <label for="contract" class="font-medium text-[#1A2A4C]/90">
                                 Li e aceito o 
                                 <!-- TODO: Troque '#' pelo link real do seu contrato -->
-                                <a href="#" target="_blank" rel="noopener noreferrer" class="text-[#4B3F8F] hover:underline">contrato v1.0</a>.
+                                <a href="/contrato.pdf" target="_blank" rel="noopener noreferrer" class="text-[#4B3F8F] hover:underline">contrato v1.0</a>
                             </label>
                         </div>
                     </div>
@@ -110,6 +110,9 @@
     </div>
 
     <script>
+        const CONTRACT_VERSION = 'v1.0';
+        const CONTRACT_HASH    = '88559760E4DAF2CEF94D9F5B7069CBCC9A5196106CD771227DB2500EFFBEDD0E';
+        const digits = s => (s || '').replace(/\D/g, '');
         const form = document.getElementById('enrollment-form');
         const submitButton = document.getElementById('submit-button');
         const buttonText = submitButton.querySelector('.button-text');
@@ -126,17 +129,18 @@
             buttonLoader.classList.remove('hidden');
 
             const formData = new FormData(form);
+            const formData = new FormData(form);
             const data = {
-                name: formData.get('name'),
-                email: formData.get('email'),
-                cpf: formData.get('cpf'),
-                phone: formData.get('phone'),
+                name:   formData.get('name'),
+                email:  formData.get('email'),
+                cpf:    digits(formData.get('cpf')),
+                phone:  digits(formData.get('phone')),
                 modality: formData.get('modality'),
                 contract: formData.get('contract') === 'on',
-                // Enviamos a versão do contrato para validação no backend
-                contractVersion: 'v1.0' 
+                contractVersion: CONTRACT_VERSION,
+                contractHash:    CONTRACT_HAS
             };
-
+                        
             try {
                 // A URL aponta para nossa Netlify Function
                 const response = await fetch('/.netlify/functions/checkout', {
@@ -147,15 +151,19 @@
                     body: JSON.stringify(data),
                 });
 
-                const result = await response.json();
-
-                if (!response.ok) {
-                    throw new Error(result.error || 'Ocorreu um erro. Tente novamente.');
-                }
+                const res = await fetch('/.netlify/functions/checkout', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(data),
+                });
                 
-                // Se tudo deu certo, redirecionamos o usuário para a URL de pagamento
+                const txt = await res.text();
+                let result = {};
+                try { result = JSON.parse(txt); } catch {}
+                if (!res.ok) throw new Error(result.error || txt || 'Ocorreu um erro. Tente novamente.');
+                
                 window.location.href = result.paymentUrl;
-
+                                
             } catch (error) {
                 messageContainer.textContent = error.message;
                 // Reabilitar botão e esconder loader em caso de erro
@@ -166,4 +174,5 @@
         });
     </script>
 </body>
+
 </html>
