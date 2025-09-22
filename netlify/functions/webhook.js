@@ -45,14 +45,15 @@ async function appendToSheet(fullPaymentData) {
     }
 }
 
-// Função para enviar o e-mail de boas-vindas (sem alterações)
+// Função para enviar o e-mail de boas-vindas (ATUALIZADA)
 async function sendWelcomeEmail(fullPaymentData) {
     try {
         const resend = new Resend(process.env.RESEND_API_KEY);
 
-        await resend.emails.send({
+        // Capturamos a resposta da API para análise
+        const { data, error } = await resend.emails.send({
             from: 'onboarding@resend.dev',
-            to: fullPaymentData.customer.email, // Agora teremos o email
+            to: fullPaymentData.customer.email,
             subject: 'Sua inscrição no curso "Fazendo as Pazes com o seu TDAH" foi confirmada!',
             html: `
                 <h1>Olá, ${fullPaymentData.customer.name}!</h1>
@@ -62,9 +63,19 @@ async function sendWelcomeEmail(fullPaymentData) {
                 <p>Atenciosamente,<br>Equipe Fazendo as Pazes com o seu TDAH</p>
             `,
         });
+
+        // Verificamos se a API retornou um objeto de erro
+        if (error) {
+            console.error('Erro retornado pela API do Resend:', error);
+            return;
+        }
+
+        // Se deu tudo certo, registramos a resposta de sucesso
+        console.log('Resposta da API do Resend:', data);
         console.log('E-mail de boas-vindas enviado com sucesso.');
+
     } catch (error) {
-        console.error('Erro ao enviar e-mail:', error);
+        console.error('Erro ao tentar enviar e-mail:', error);
     }
 }
 
