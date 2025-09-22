@@ -10,6 +10,9 @@ const err = (code, msg) => ({ statusCode: code, body: msg });
 
 // Função para enviar o e-mail de boas-vindas com Senha de App
 async function sendWelcomeEmail(customerData) {
+    // DEBUG: Verifica se as variáveis de ambiente do Gmail estão a ser carregadas
+    console.log(`DEBUG GMAIL: Verificando credenciais. Email: ${process.env.GMAIL_ADDRESS ? 'Presente' : 'Ausente'}, Senha de App: ${process.env.GMAIL_APP_PASSWORD ? 'Presente' : 'Ausente'}`);
+
     try {
         const transporter = nodemailer.createTransport({
             service: 'gmail',
@@ -101,8 +104,7 @@ exports.handler = async (event) => {
             return ok({ received: true, ignored: true, reason: 'Event type not processed' });
         }
 
-        // --- NOVA VALIDAÇÃO PARA IGNORAR PARCELAS SUBSEQUENTES ---
-        // O Asaas envia um webhook para cada parcela. Queremos agir apenas na primeira.
+        // --- VALIDAÇÃO PARA IGNORAR PARCELAS SUBSEQUENTES ---
         if (paymentData.installmentNumber && paymentData.installmentNumber > 1) {
             console.log(`Ignorando parcela ${paymentData.installmentNumber} do pagamento ${paymentData.id}. Ação já executada na primeira parcela.`);
             return ok({ received: true, ignored: true, reason: 'Subsequent installment' });
