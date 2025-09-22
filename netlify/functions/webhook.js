@@ -8,7 +8,7 @@ const axios = require('axios');
 const ok = (obj) => ({ statusCode: 200, headers: { "Content-Type":"application/json" }, body: JSON.stringify(obj||{ok:true}) });
 const err = (code, msg) => ({ statusCode: code, body: msg });
 
-// Função para adicionar dados à Planilha Google (sem alterações)
+// Função para adicionar dados à Planilha Google
 async function appendToSheet(fullPaymentData) {
     try {
         const auth = new google.auth.GoogleAuth({
@@ -51,9 +51,6 @@ async function sendWelcomeEmail(fullPaymentData) {
     try {
         const { GMAIL_ADDRESS, GMAIL_CLIENT_ID, GMAIL_CLIENT_SECRET, GMAIL_REFRESH_TOKEN } = process.env;
 
-        // LINHA DE DEBUG: Vamos imprimir uma amostra do token que a função está a usar
-        console.log(`DEBUG TOKEN: Amostra do Refresh Token utilizado: ${GMAIL_REFRESH_TOKEN.slice(0, 5)}...${GMAIL_REFRESH_TOKEN.slice(-5)}`);
-
         const oauth2Client = new OAuth2Client(GMAIL_CLIENT_ID, GMAIL_CLIENT_SECRET, 'https://developers.google.com/oauthplayground');
         oauth2Client.setCredentials({ refresh_token: GMAIL_REFRESH_TOKEN });
 
@@ -94,7 +91,7 @@ async function sendWelcomeEmail(fullPaymentData) {
 
 
 exports.handler = async (event) => {
-    // --- Validação do webhook (sem alterações) ---
+    // --- Validação do webhook ---
     if (event.httpMethod !== "POST") return err(405, "Method Not Allowed");
     const H = {};
     for (const [k,v] of Object.entries(event.headers || {})) H[(k || "").toLowerCase().replace(/[-_]/g, "")] = v;
