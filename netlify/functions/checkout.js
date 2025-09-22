@@ -50,6 +50,14 @@ exports.handler = async (event) => {
         }
         
         const installmentCount = parseInt(installments, 10) || 1;
+
+        // Nova validação para o limite de parcelas
+        if (installmentCount > 6) {
+             return {
+                statusCode: 400,
+                body: JSON.stringify({ error: 'O número máximo de parcelas é 6.' }),
+            };
+        }
         
         // 3. Lógica de Pagamento
         let billingType = paymentMethod;
