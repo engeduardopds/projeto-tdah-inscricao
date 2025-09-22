@@ -7,8 +7,12 @@ const COURSE_PRICES = {
     Presencial: 499.90,
 };
 
-// Versão do contrato que esperamos que o usuário aceite
+// --- INÍCIO DA ATUALIZAÇÃO ---
+// Adicionamos o hash esperado do contrato para validação no backend.
+// Este hash deve corresponder exatamente ao hash no seu arquivo index.html.
 const ACCEPTED_CONTRACT_VERSION = 'v1.0';
+const ACCEPTED_CONTRACT_HASH = '88559760E4DAF2CEF94D9F5B7069CBCC9A5196106CD771227DB2500EFFBEDD0E';
+// --- FIM DA ATUALIZAÇÃO ---
 
 exports.handler = async (event) => {
     // 1. Validação inicial: Apenas aceitamos requisições POST
@@ -21,7 +25,10 @@ exports.handler = async (event) => {
 
     try {
         const data = JSON.parse(event.body);
-        const { name, email, cpf, phone, modality, contract, contractVersion } = data;
+        // --- INÍCIO DA ATUALIZAÇÃO ---
+        // Extraímos o contractHash dos dados recebidos do formulário.
+        const { name, email, cpf, phone, modality, contract, contractVersion, contractHash } = data;
+        // --- FIM DA ATUALIZAÇÃO ---
 
         // 2. Validação dos dados recebidos
         if (!name || !email || !cpf || !phone || !modality) {
@@ -31,12 +38,23 @@ exports.handler = async (event) => {
             };
         }
 
+        // Validação do contrato (agora com versão e hash)
         if (!contract || contractVersion !== ACCEPTED_CONTRACT_VERSION) {
             return {
                 statusCode: 400,
                 body: JSON.stringify({ error: 'Você deve aceitar a versão mais recente do contrato.' }),
             };
         }
+        
+        // --- INÍCIO DA ATUALIZAÇÃO ---
+        // Nova validação para garantir a integridade do contrato.
+        if (contractHash !== ACCEPTED_CONTRACT_HASH) {
+            return {
+                statusCode: 400,
+                body: JSON.stringify({ error: 'A assinatura do contrato é inválida. Por favor, recarregue a página e tente novamente.' }),
+            };
+        }
+        // --- FIM DA ATUALIZAÇÃO ---
 
         const coursePrice = COURSE_PRICES[modality];
         if (!coursePrice) {
@@ -47,13 +65,11 @@ exports.handler = async (event) => {
         }
 
         // 3. Preparação para a chamada à API do Asaas
-        // IMPORTANTE: Guarde sua chave de API nas Environment Variables do Netlify!
         const ASAAS_API_KEY = process.env.ASAAS_API_KEY;
         if (!ASAAS_API_KEY) {
             throw new Error("Chave da API do Asaas não configurada.");
         }
 
-        // URL da API do Asaas (use a URL de produção quando estiver pronto)
         const asaasApiUrl = 'https://sandbox.asaas.com/api/v3/payments';
 
         const today = new Date();
@@ -63,15 +79,13 @@ exports.handler = async (event) => {
             customer: {
                 name,
                 email,
-                cpfCnpj: cpf.replace(/\D/g, ''), // Remove caracteres não numéricos do CPF
-                mobilePhone: phone.replace(/\D/g, ''),
+                cpfCnpj: cpf, // O front-end já remove a formatação
+                mobilePhone: phone, // O front-end já remove a formatação
             },
-            billingType: 'UNDEFINED', // Permite que o cliente escolha entre boleto, pix ou cartão
+            billingType: 'UNDEFINED',
             value: coursePrice,
             dueDate: dueDate,
             description: `Inscrição no curso "Fazendo as Pazes com o seu TDAH" - Modalidade ${modality}`,
-            // Você pode adicionar um ID externo para vincular ao seu sistema
-            // externalReference: 'SEU_ID_INTERNO_DO_ALUNO',
         };
 
         // 4. Chamada à API do Asaas
