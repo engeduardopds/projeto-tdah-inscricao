@@ -69,7 +69,7 @@ exports.handler = async (event) => {
                 cpfCnpj: cpf.replace(/\D/g, ''),
                 mobilePhone: phone.replace(/\D/g, ''),
             },
-            billingType: 'UNDEFINED',
+            billingType: 'UNDEFINED', // Padrão: permite todos os métodos
             value: coursePrice,
             dueDate: dueDate,
             description: `Inscrição no curso "Fazendo as Pazes com o seu TDAH" - Modalidade ${modality}`,
@@ -80,11 +80,11 @@ exports.handler = async (event) => {
             },
         };
         
-        // Adiciona informações de parcelamento APENAS se for maior que 1
+        // Adiciona informações de parcelamento e restringe a forma de pagamento se for maior que 1
         if (installmentCount > 1) {
             payload.installmentCount = installmentCount;
-            // Opcional: Asaas calcula o valor da parcela se não for informado, o que evita erros de arredondamento.
             payload.installmentValue = parseFloat((coursePrice / installmentCount).toFixed(2));
+            payload.billingType = 'CREDIT_CARD'; // ALTERAÇÃO: Restringe para cartão de crédito
         }
 
         // 4. Chamada à API do Asaas
