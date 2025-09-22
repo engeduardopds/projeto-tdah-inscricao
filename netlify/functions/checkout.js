@@ -1,16 +1,17 @@
 // Importa a biblioteca axios para fazer requisições HTTP
 const axios = require('axios');
+const crypto = require('crypto');
 
-// Preços dos cursos - idealmente, viriam de um banco de dados ou outra fonte segura.
+// ATUALIZE AQUI OS PREÇOS DOS SEUS CURSOS
 const COURSE_PRICES = {
-    Online: 199.90,
-    Presencial: 499.90,
+    Online: 249.90,
+    Presencial: 599.90,
 };
 
-// Adicionamos o hash esperado do contrato para validação no backend.
-// Este hash deve corresponder exatamente ao hash no seu arquivo index.html.
+// ATUALIZE AQUI SE ALTERAR O PDF DO CONTRATO
 const ACCEPTED_CONTRACT_VERSION = 'v1.0';
 const ACCEPTED_CONTRACT_HASH = '88559760E4DAF2CEF94D9F5B7069CBCC9A5196106CD771227DB2500EFFBEDD0E';
+
 
 exports.handler = async (event) => {
     // 1. Validação inicial: Apenas aceitamos requisições POST
@@ -23,14 +24,21 @@ exports.handler = async (event) => {
 
     try {
         const data = JSON.parse(event.body);
-        // Extraímos o contractHash dos dados recebidos do formulário.
-        const { name, email, cpf, phone, modality, contract, contractVersion, contractHash } = data;
+        const { name, email, cpf, phone, modality, installmentCount, contract, contractVersion, contractHash } = data;
+        const remoteIp = event.headers['x-nf-client-connection-ip'];
 
         // 2. Validação dos dados recebidos
-        if (!name || !email || !cpf || !phone || !modality || !contract || contractVersion !== ACCEPTED_CONTRACT_VERSION || contractHash !== ACCEPTED_CONTRACT_HASH) {
+        if (!name || !email || !cpf || !phone || !modality || !installmentCount) {
             return {
                 statusCode: 400,
-                body: JSON.stringify({ error: 'Dados inválidos ou contrato não aceito.' }),
+                body: JSON.stringify({ error: 'Todos os campos são obrigatórios.' }),
+            };
+        }
+        
+        if (!contract || contractVersion !== ACCEPTED_CONTRACT_VERSION || contractHash !== ACCEPTED_CONTRACT_HASH) {
+            return {
+                statusCode: 400,
+                body: JSON.stringify({ error: 'Você deve aceitar a versão mais recente do contrato.' }),
             };
         }
 
@@ -47,33 +55,37 @@ exports.handler = async (event) => {
         if (!ASAAS_API_KEY) {
             throw new Error("Chave da API do Asaas não configurada.");
         }
-
+        
         const asaasApiUrl = 'https://sandbox.asaas.com/api/v3/payments';
 
         const today = new Date();
         const dueDate = new Date(today.setDate(today.getDate() + 5)).toISOString().split('T')[0];
 
+        // Construção do payload para o Asaas
         const payload = {
             customer: {
                 name,
                 email,
-                // --- INÍCIO DA CORREÇÃO ---
-                // Adicionamos a limpeza dos dados aqui para garantir que o formato esteja sempre correto,
-                // independentemente do que o frontend enviar.
-                cpfCnpj: (cpf || '').replace(/\D/g, ''),
-                mobilePhone: (phone || '').replace(/\D/g, ''),
-                // --- FIM DA CORREÇÃO ---
+                cpfCnpj: cpf.replace(/\D/g, ''),
+                mobilePhone: phone.replace(/\D/g, ''),
             },
             billingType: 'UNDEFINED',
             value: coursePrice,
             dueDate: dueDate,
             description: `Inscrição no curso "Fazendo as Pazes com o seu TDAH" - Modalidade ${modality}`,
+            remoteIp,
             callback: {
                 successUrl: `${process.env.URL}/obrigado/`,
                 autoRedirect: true,
             },
-            remoteIp: event.headers['x-nf-client-connection-ip'],
         };
+        
+        // Adiciona informações de parcelamento APENAS se for maior que 1
+        if (installmentCount > 1) {
+            payload.installmentCount = installmentCount;
+            // Opcional: Asaas calcula o valor da parcela se não for informado, o que evita erros de arredondamento.
+            // payload.installmentValue = parseFloat((coursePrice / installmentCount).toFixed(2));
+        }
 
         // 4. Chamada à API do Asaas
         const response = await axios.post(asaasApiUrl, payload, {
@@ -98,3 +110,4 @@ exports.handler = async (event) => {
         };
     }
 };
+
