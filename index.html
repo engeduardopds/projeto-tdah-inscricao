@@ -21,13 +21,6 @@
         @keyframes spin {
             to { transform: rotate(360deg); }
         }
-        .fade-in {
-            animation: fadeIn 0.3s ease-in-out;
-        }
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(5px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
     </style>
 </head>
 <body class="flex items-center justify-center min-h-screen p-4">
@@ -43,25 +36,19 @@
         <main class="bg-white rounded-2xl shadow-lg p-6 md:p-8 transition-all duration-300">
             <form id="enrollment-form">
                 <div class="space-y-5">
-                    <!-- Nome -->
+                    <!-- Campos de Dados Pessoais (Nome, E-mail, CPF, Celular) -->
                     <div>
                         <label for="name" class="block text-sm font-medium text-[#1A2A4C]/90">Nome Completo</label>
                         <input type="text" id="name" name="name" required class="mt-1 block w-full px-4 py-3 bg-gray-50 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-[#4B3F8F] focus:border-transparent transition" placeholder="Seu nome completo">
                     </div>
-                    
-                    <!-- E-mail -->
                     <div>
                         <label for="email" class="block text-sm font-medium text-[#1A2A4C]/90">E-mail</label>
                         <input type="email" id="email" name="email" required class="mt-1 block w-full px-4 py-3 bg-gray-50 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-[#4B3F8F] focus:border-transparent transition" placeholder="seu@email.com">
                     </div>
-
-                    <!-- CPF -->
                     <div>
                         <label for="cpf" class="block text-sm font-medium text-[#1A2A4C]/90">CPF</label>
                         <input type="text" id="cpf" name="cpf" required class="mt-1 block w-full px-4 py-3 bg-gray-50 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-[#4B3F8F] focus:border-transparent transition" placeholder="000.000.000-00">
                     </div>
-
-                    <!-- Celular -->
                     <div>
                         <label for="phone" class="block text-sm font-medium text-[#1A2A4C]/90">Celular (com DDD)</label>
                         <input type="tel" id="phone" name="phone" required class="mt-1 block w-full px-4 py-3 bg-gray-50 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-[#4B3F8F] focus:border-transparent transition" placeholder="(99) 99999-9999">
@@ -105,29 +92,14 @@
                         </div>
                     </div>
 
-                    <!-- Parcelas (condicional) -->
+                    <!-- Parcelas -->
                     <div id="installments-container">
-                        <label for="installments" class="block text-sm font-medium text-[#1A2A4C]/90">Quantidade de Parcelas</label>
-                        <select id="installments" name="installments" class="mt-1 block w-full pl-3 pr-10 py-3 text-base bg-gray-50 border-gray-300 focus:outline-none focus:ring-[#4B3F8F] focus:border-[#4B3F8F] sm:text-sm rounded-lg shadow-sm transition">
-                            <option value="1">1x (à vista)</option>
-                            <option value="2">2x</option>
-                            <option value="3">3x</option>
-                            <option value="4">4x</option>
-                            <option value="5">5x</option>
-                            <option value="6">6x</option>
-                            <option value="7">7x</option>
-                            <option value="8">8x</option>
-                            <option value="9">9x</option>
-                            <option value="10">10x</option>
-                            <option value="11">11x</option>
-                            <option value="12">12x</option>
-                        </select>
-                        <p id="installment-value" class="mt-2 text-sm text-gray-600"></p>
+                        <label for="installments" class="block text-sm font-medium text-[#1A2A4C]/90">Opções de Pagamento</label>
+                        <select id="installments" name="installments" class="mt-1 block w-full pl-3 pr-10 py-3 text-base bg-gray-50 border-gray-300 focus:outline-none focus:ring-[#4B3F8F] focus:border-[#4B3F8F] sm:text-sm rounded-lg shadow-sm transition"></select>
                     </div>
 
-
                     <!-- Contrato -->
-                    <div class="flex items-start">
+                    <div class="flex items-start pt-2">
                         <div class="flex items-center h-5">
                             <input id="contract" name="contract" type="checkbox" required class="focus:ring-[#4B3F8F] h-4 w-4 text-[#4B3F8F] border-gray-300 rounded">
                         </div>
@@ -169,42 +141,40 @@
         const buttonLoader = submitButton.querySelector('.loader');
         const messageContainer = document.getElementById('message-container');
 
-        const installmentsContainer = document.getElementById('installments-container');
         const paymentMethodRadios = document.querySelectorAll('input[name="paymentMethod"]');
         const installmentsSelect = document.getElementById('installments');
         const modalityRadios = document.querySelectorAll('input[name="modality"]');
-        const installmentValueText = document.getElementById('installment-value');
 
         const coursePrices = { Online: 599.90, Presencial: 999.90 };
+        const maxInstallments = 6;
 
-        function updateInstallmentValue() {
+        function updateInstallmentOptions() {
+            const selectedMethod = document.querySelector('input[name="paymentMethod"]:checked').value;
             const selectedModality = document.querySelector('input[name="modality"]:checked').value;
             const price = coursePrices[selectedModality];
-            const numInstallments = parseInt(installmentsSelect.value, 10);
+            
+            installmentsSelect.innerHTML = ''; // Limpa as opções atuais
 
-            if (numInstallments > 1) {
-                const value = (price / numInstallments).toFixed(2).replace('.', ',');
-                installmentValueText.textContent = `${numInstallments}x de R$ ${value}`;
-            } else {
-                installmentValueText.textContent = '';
+            const max = (selectedMethod === 'CREDIT_CARD') ? maxInstallments : 1;
+
+            for (let i = 1; i <= max; i++) {
+                const option = document.createElement('option');
+                option.value = i;
+                
+                const totalFormatted = `R$ ${price.toFixed(2).replace('.', ',')}`;
+
+                if (i === 1) {
+                    option.textContent = `1x de ${totalFormatted} (à vista)`;
+                } else {
+                    const installmentValue = (price / i).toFixed(2).replace('.', ',');
+                    option.textContent = `${i}x de R$ ${installmentValue} (Total: ${totalFormatted})`;
+                }
+                installmentsSelect.appendChild(option);
             }
         }
-        
-        function handlePaymentMethodChange() {
-            const selectedMethod = document.querySelector('input[name="paymentMethod"]:checked').value;
-            if (selectedMethod === 'CREDIT_CARD') {
-                installmentsContainer.classList.remove('hidden');
-                installmentsContainer.classList.add('fade-in');
-            } else {
-                installmentsContainer.classList.add('hidden');
-                installmentsSelect.value = '1';
-            }
-            updateInstallmentValue();
-        }
 
-        paymentMethodRadios.forEach(radio => radio.addEventListener('change', handlePaymentMethodChange));
-        modalityRadios.forEach(radio => radio.addEventListener('change', updateInstallmentValue));
-        installmentsSelect.addEventListener('change', updateInstallmentValue);
+        paymentMethodRadios.forEach(radio => radio.addEventListener('change', updateInstallmentOptions));
+        modalityRadios.forEach(radio => radio.addEventListener('change', updateInstallmentOptions));
 
         form.addEventListener('submit', async (event) => {
             event.preventDefault();
@@ -251,7 +221,7 @@
         });
 
         // Inicializa o estado da UI
-        handlePaymentMethodChange();
+        updateInstallmentOptions();
     </script>
 </body>
 </html>
