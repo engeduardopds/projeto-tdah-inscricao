@@ -1,9 +1,10 @@
 // Importa as novas bibliotecas e o axios
 const { google } = require('googleapis');
-const { Resend } = require('resend');
+const { OAuth2Client } = require('google-auth-library');
+const nodemailer = require('nodemailer');
 const axios = require('axios');
 
-// --- Seu código de webhook existente ---
+// --- Funções auxiliares ---
 const ok = (obj) => ({ statusCode: 200, headers: { "Content-Type":"application/json" }, body: JSON.stringify(obj||{ok:true}) });
 const err = (code, msg) => ({ statusCode: code, body: msg });
 
@@ -22,8 +23,8 @@ async function appendToSheet(fullPaymentData) {
         
         const newRow = [
             new Date().toLocaleString('pt-BR'), 
-            fullPaymentData.customer.name, // Agora teremos o nome
-            fullPaymentData.customer.email, // Agora teremos o email
+            fullPaymentData.customer.name,
+            fullPaymentData.customer.email,
             fullPaymentData.description.includes('Online') ? 'Online' : 'Presencial',
             fullPaymentData.value,
             fullPaymentData.status,
@@ -45,14 +46,34 @@ async function appendToSheet(fullPaymentData) {
     }
 }
 
-// Função para enviar o e-mail de boas-vindas (ATUALIZADA)
+// NOVA FUNÇÃO para enviar o e-mail de boas-vindas com Nodemailer e Gmail
 async function sendWelcomeEmail(fullPaymentData) {
     try {
-        const resend = new Resend(process.env.RESEND_API_KEY);
+        const { GMAIL_ADDRESS, GMAIL_CLIENT_ID, GMAIL_CLIENT_SECRET, GMAIL_REFRESH_TOKEN } = process.env;
 
-        // Capturamos a resposta da API para análise
-        const { data, error } = await resend.emails.send({
-            from: 'onboarding@resend.dev',
+        // Configura o cliente OAuth2
+        const oauth2Client = new OAuth2Client(GMAIL_CLIENT_ID, GMAIL_CLIENT_SECRET, 'https://developers.google.com/oauthplayground');
+        oauth2Client.setCredentials({ refresh_token: GMAIL_REFRESH_TOKEN });
+
+        // Obtém um novo token de acesso
+        const accessToken = await oauth2Client.getAccessToken();
+
+        // Configura o "transporter" do Nodemailer
+        const transporter = nodemailer.createTransport({
+            service: 'gmail',
+            auth: {
+                type: 'OAuth2',
+                user: GMAIL_ADDRESS,
+                clientId: GMAIL_CLIENT_ID,
+                clientSecret: GMAIL_CLIENT_SECRET,
+                refreshToken: GMAIL_REFRESH_TOKEN,
+                accessToken: accessToken.token,
+            },
+        });
+
+        // Envia o e-mail
+        const mailOptions = {
+            from: `Fazendo as Pazes com o TDAH <${GMAIL_ADDRESS}>`,
             to: fullPaymentData.customer.email,
             subject: 'Sua inscrição no curso "Fazendo as Pazes com o seu TDAH" foi confirmada!',
             html: `
@@ -62,64 +83,12 @@ async function sendWelcomeEmail(fullPaymentData) {
                 <p>Em breve você receberá mais informações sobre o início das aulas.</p>
                 <p>Atenciosamente,<br>Equipe Fazendo as Pazes com o seu TDAH</p>
             `,
-        });
+        };
 
-        // Verificamos se a API retornou um objeto de erro
-        if (error) {
-            console.error('Erro retornado pela API do Resend:', error);
-            return;
-        }
+        const result = await transporter.sendMail(mailOptions);
+        console.log('E-mail de boas-vindas enviado com sucesso:', result.response);
 
-        // Se deu tudo certo, registramos a resposta de sucesso
-        console.log('Resposta da API do Resend:', data);
-        console.log('E-mail de boas-vindas enviado com sucesso.');
-
-    } catch (error) {
-        console.error('Erro ao tentar enviar e-mail:', error);
-    }
-}
-
-
-exports.handler = async (event) => {
-    // --- Validação do webhook (sem alterações) ---
-    if (event.httpMethod !== "POST") return err(405, "Method Not Allowed");
-    const H = {};
-    for (const [k,v] of Object.entries(event.headers || {})) H[(k || "").toLowerCase().replace(/[-_]/g, "")] = v;
-    const expected = (process.env.ASAAS_WEBHOOK_TOKEN || "").trim();
-    const got = (H["asaasaccesstoken"] || H["xasaasaccesstoken"] || (H["authorization"] || "").replace(/^bearer\s+/i,"")).trim();
-    if (expected && got !== expected) return err(401, "Unauthorized");
-
-    let n = {};
-    try { n = JSON.parse(event.body || "{}"); } catch { return ok({ ignored:true, reason:"bad json" }); }
-
-    const payment = n.payment || {}; 
-
-    // --- LÓGICA DE NEGÓCIO ATUALIZADA ---
-    if (payment.status === 'CONFIRMED' || payment.status === 'RECEIVED') {
-        try {
-            // 1. Buscamos os dados completos do cliente no Asaas usando o ID do cliente
-            const customerId = payment.customer;
-            const ASAAS_API_KEY = process.env.ASAAS_API_KEY;
-            const asaasApiUrl = `https://sandbox.asaas.com/api/v3/customers/${customerId}`;
-            
-            const customerResponse = await axios.get(asaasApiUrl, {
-                headers: { 'access_token': ASAAS_API_KEY }
-            });
-            
-            // 2. Criamos um novo objeto de pagamento com os dados completos do cliente
-            const fullPaymentData = {
-                ...payment,
-                customer: customerResponse.data 
-            };
-            
-            // 3. Executamos as ações com os dados completos
-            await Promise.all([
-                appendToSheet(fullPaymentData),
-                sendWelcomeEmail(fullPaymentData)
-            ]);
-
-        } catch (error) {
-            console.error("Erro ao processar lógica de negócio do webhook:", error.response ? error.response.data : error.message);
+    } catch (error)        console.error("Erro ao processar lógica de negócio do webhook:", error.response ? error.response.data : error.message);
         }
     }
 
