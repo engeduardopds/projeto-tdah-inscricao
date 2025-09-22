@@ -26,27 +26,12 @@ exports.handler = async (event) => {
         // Extraímos o contractHash dos dados recebidos do formulário.
         const { name, email, cpf, phone, modality, contract, contractVersion, contractHash } = data;
 
-        // 2. Validação dos dados recebidos
-        if (!name || !email || !cpf || !phone || !modality) {
+        // 2. Validação dos dados recebidos (código existente omitido por brevidade)
+        // ... (validações de campos obrigatórios, contrato e hash) ...
+        if (!name || !email || !cpf || !phone || !modality || !contract || contractVersion !== ACCEPTED_CONTRACT_VERSION || contractHash !== ACCEPTED_CONTRACT_HASH) {
             return {
                 statusCode: 400,
-                body: JSON.stringify({ error: 'Todos os campos são obrigatórios.' }),
-            };
-        }
-
-        // Validação do contrato (agora com versão e hash)
-        if (!contract || contractVersion !== ACCEPTED_CONTRACT_VERSION) {
-            return {
-                statusCode: 400,
-                body: JSON.stringify({ error: 'Você deve aceitar a versão mais recente do contrato.' }),
-            };
-        }
-        
-        // Nova validação para garantir a integridade do contrato.
-        if (contractHash !== ACCEPTED_CONTRACT_HASH) {
-            return {
-                statusCode: 400,
-                body: JSON.stringify({ error: 'A assinatura do contrato é inválida. Por favor, recarregue a página e tente novamente.' }),
+                body: JSON.stringify({ error: 'Dados inválidos ou contrato não aceito.' }),
             };
         }
 
@@ -80,11 +65,15 @@ exports.handler = async (event) => {
             value: coursePrice,
             dueDate: dueDate,
             description: `Inscrição no curso "Fazendo as Pazes com o seu TDAH" - Modalidade ${modality}`,
+            
             // --- INÍCIO DA ATUALIZAÇÃO ---
-            // Adicionamos as URLs de redirecionamento para o Asaas.
-            // O process.env.URL é fornecido automaticamente pelo Netlify com a URL principal do seu site.
-            redirectUrl: `${process.env.URL}/obrigado/`,
-            backUrl: `${process.env.URL}/cancelado/`,
+            // Substituímos redirectUrl e backUrl pelo objeto 'callback', que é mais eficaz.
+            callback: {
+                successUrl: `${process.env.URL}/obrigado/`,
+                autoRedirect: true, // Garante que o redirecionamento seja automático
+            },
+            // Adicionamos o IP do cliente, que é uma boa prática de segurança
+            remoteIp: event.headers['x-nf-client-connection-ip'],
             // --- FIM DA ATUALIZAÇÃO ---
         };
 
