@@ -26,8 +26,7 @@ exports.handler = async (event) => {
         // Extraímos o contractHash dos dados recebidos do formulário.
         const { name, email, cpf, phone, modality, contract, contractVersion, contractHash } = data;
 
-        // 2. Validação dos dados recebidos (código existente omitido por brevidade)
-        // ... (validações de campos obrigatórios, contrato e hash) ...
+        // 2. Validação dos dados recebidos
         if (!name || !email || !cpf || !phone || !modality || !contract || contractVersion !== ACCEPTED_CONTRACT_VERSION || contractHash !== ACCEPTED_CONTRACT_HASH) {
             return {
                 statusCode: 400,
@@ -58,23 +57,22 @@ exports.handler = async (event) => {
             customer: {
                 name,
                 email,
-                cpfCnpj: cpf,
-                mobilePhone: phone,
+                // --- INÍCIO DA CORREÇÃO ---
+                // Adicionamos a limpeza dos dados aqui para garantir que o formato esteja sempre correto,
+                // independentemente do que o frontend enviar.
+                cpfCnpj: (cpf || '').replace(/\D/g, ''),
+                mobilePhone: (phone || '').replace(/\D/g, ''),
+                // --- FIM DA CORREÇÃO ---
             },
             billingType: 'UNDEFINED',
             value: coursePrice,
             dueDate: dueDate,
             description: `Inscrição no curso "Fazendo as Pazes com o seu TDAH" - Modalidade ${modality}`,
-            
-            // --- INÍCIO DA ATUALIZAÇÃO ---
-            // Substituímos redirectUrl e backUrl pelo objeto 'callback', que é mais eficaz.
             callback: {
                 successUrl: `${process.env.URL}/obrigado/`,
-                autoRedirect: true, // Garante que o redirecionamento seja automático
+                autoRedirect: true,
             },
-            // Adicionamos o IP do cliente, que é uma boa prática de segurança
             remoteIp: event.headers['x-nf-client-connection-ip'],
-            // --- FIM DA ATUALIZAÇÃO ---
         };
 
         // 4. Chamada à API do Asaas
