@@ -84,7 +84,7 @@ exports.handler = async (event) => {
         if (installmentCount > 1) {
             payload.installmentCount = installmentCount;
             // Opcional: Asaas calcula o valor da parcela se não for informado, o que evita erros de arredondamento.
-            // payload.installmentValue = parseFloat((coursePrice / installmentCount).toFixed(2));
+            payload.installmentValue = parseFloat((coursePrice / installmentCount).toFixed(2));
         }
 
         // 4. Chamada à API do Asaas
