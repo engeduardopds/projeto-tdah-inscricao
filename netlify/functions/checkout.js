@@ -1,20 +1,20 @@
 // Importa a biblioteca axios para fazer requisições HTTP
 const axios = require('axios');
-const crypto = require('crypto');
 
-// ATUALIZE AQUI OS PREÇOS DOS SEUS CURSOS
+// ATUALIZE AQUI OS VALORES REAIS DOS SEUS CURSOS
 const COURSE_PRICES = {
-    Online: 249.90,
-    Presencial: 599.90,
+    Online: 599.90,
+    Presencial: 999.90,
 };
 
-// ATUALIZE AQUI SE ALTERAR O PDF DO CONTRATO
+// Versão do contrato que esperamos que o usuário aceite
 const ACCEPTED_CONTRACT_VERSION = 'v1.0';
+// Hash SHA-256 do arquivo contrato.pdf para garantir sua integridade
 const ACCEPTED_CONTRACT_HASH = '88559760E4DAF2CEF94D9F5B7069CBCC9A5196106CD771227DB2500EFFBEDD0E';
 
 
 exports.handler = async (event) => {
-    // 1. Validação inicial: Apenas aceitamos requisições POST
+    // 1. Validação inicial
     if (event.httpMethod !== 'POST') {
         return {
             statusCode: 405,
@@ -24,17 +24,16 @@ exports.handler = async (event) => {
 
     try {
         const data = JSON.parse(event.body);
-        const { name, email, cpf, phone, modality, installmentCount, contract, contractVersion, contractHash } = data;
-        const remoteIp = event.headers['x-nf-client-connection-ip'];
+        const { name, email, cpf, phone, modality, contract, contractVersion, contractHash, installments, paymentMethod } = data;
 
         // 2. Validação dos dados recebidos
-        if (!name || !email || !cpf || !phone || !modality || !installmentCount) {
+        if (!name || !email || !cpf || !phone || !modality || !paymentMethod) {
             return {
                 statusCode: 400,
                 body: JSON.stringify({ error: 'Todos os campos são obrigatórios.' }),
             };
         }
-        
+
         if (!contract || contractVersion !== ACCEPTED_CONTRACT_VERSION || contractHash !== ACCEPTED_CONTRACT_HASH) {
             return {
                 statusCode: 400,
@@ -49,45 +48,60 @@ exports.handler = async (event) => {
                 body: JSON.stringify({ error: 'Modalidade de curso inválida.' }),
             };
         }
+        
+        const installmentCount = parseInt(installments, 10) || 1;
+        
+        // 3. Lógica de Pagamento
+        let billingType = paymentMethod;
 
-        // 3. Preparação para a chamada à API do Asaas
+        // Garante que parcelamento só seja possível com Cartão de Crédito
+        if (installmentCount > 1 && billingType !== 'CREDIT_CARD') {
+            return {
+                statusCode: 400,
+                body: JSON.stringify({ error: 'Parcelamento só é permitido para Cartão de Crédito.' }),
+            };
+        }
+
+
+        // 4. Preparação para a chamada à API do Asaas
         const ASAAS_API_KEY = process.env.ASAAS_API_KEY;
         if (!ASAAS_API_KEY) {
             throw new Error("Chave da API do Asaas não configurada.");
         }
-        
+
         const asaasApiUrl = 'https://sandbox.asaas.com/api/v3/payments';
 
         const today = new Date();
         const dueDate = new Date(today.setDate(today.getDate() + 5)).toISOString().split('T')[0];
 
-        // Construção do payload para o Asaas
+        // Constrói o payload base
         const payload = {
             customer: {
                 name,
                 email,
-                cpfCnpj: cpf.replace(/\D/g, ''),
-                mobilePhone: phone.replace(/\D/g, ''),
+                cpfCnpj: cpf,
+                mobilePhone: phone,
             },
-            billingType: 'UNDEFINED', // Padrão: permite todos os métodos
+            billingType: billingType,
             value: coursePrice,
             dueDate: dueDate,
             description: `Inscrição no curso "Fazendo as Pazes com o seu TDAH" - Modalidade ${modality}`,
-            remoteIp,
+            externalReference: `inscricao-tdah-${new Date().getTime()}`,
             callback: {
                 successUrl: `${process.env.URL}/obrigado/`,
                 autoRedirect: true,
             },
+            remoteIp: event.headers['x-nf-client-connection-ip'],
         };
-        
-        // Adiciona informações de parcelamento e restringe a forma de pagamento se for maior que 1
+
+        // Adiciona informações de parcelamento APENAS se for parcelado
         if (installmentCount > 1) {
             payload.installmentCount = installmentCount;
+            // O Asaas exige que o valor da parcela seja informado
             payload.installmentValue = parseFloat((coursePrice / installmentCount).toFixed(2));
-            payload.billingType = 'CREDIT_CARD'; // ALTERAÇÃO: Restringe para cartão de crédito
         }
 
-        // 4. Chamada à API do Asaas
+        // 5. Chamada à API do Asaas
         const response = await axios.post(asaasApiUrl, payload, {
             headers: {
                 'Content-Type': 'application/json',
@@ -95,14 +109,14 @@ exports.handler = async (event) => {
             },
         });
         
-        // 5. Retorno do sucesso com a URL de pagamento
+        // 6. Retorno do sucesso com a URL de pagamento
         return {
             statusCode: 200,
             body: JSON.stringify({ paymentUrl: response.data.invoiceUrl }),
         };
 
     } catch (error) {
-        // 6. Tratamento de erros
+        // 7. Tratamento de erros
         console.error('Erro ao criar checkout:', error.response ? error.response.data : error.message);
         return {
             statusCode: 500,
