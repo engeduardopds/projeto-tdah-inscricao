@@ -8,17 +8,27 @@ const nodemailer = require('nodemailer');
 const ok = (obj) => ({ statusCode: 200, headers: { "Content-Type": "application/json" }, body: JSON.stringify(obj || { ok: true }) });
 const err = (code, msg) => ({ statusCode: code, body: msg });
 
-// Função para enviar o e-mail de boas-vindas com Senha de App
+// Função para enviar o e-mail de boas-vindas com OAuth 2.0
 async function sendWelcomeEmail(customerData) {
-    // DEBUG: Verifica se as variáveis de ambiente do Gmail estão a ser carregadas
-    console.log(`DEBUG GMAIL: Verificando credenciais. Email: ${process.env.GMAIL_ADDRESS ? 'Presente' : 'Ausente'}, Senha de App: ${process.env.GMAIL_APP_PASSWORD ? 'Presente' : 'Ausente'}`);
-
     try {
+        const oAuth2Client = new google.auth.OAuth2(
+            process.env.GMAIL_CLIENT_ID,
+            process.env.GMAIL_CLIENT_SECRET,
+            "https://developers.google.com/oauthplayground"
+        );
+        oAuth2Client.setCredentials({ refresh_token: process.env.GMAIL_REFRESH_TOKEN });
+
+        const accessToken = await oAuth2Client.getAccessToken();
+
         const transporter = nodemailer.createTransport({
             service: 'gmail',
             auth: {
+                type: 'OAuth2',
                 user: process.env.GMAIL_ADDRESS,
-                pass: process.env.GMAIL_APP_PASSWORD, // Usando a senha de aplicativo
+                clientId: process.env.GMAIL_CLIENT_ID,
+                clientSecret: process.env.GMAIL_CLIENT_SECRET,
+                refreshToken: process.env.GMAIL_REFRESH_TOKEN,
+                accessToken: accessToken,
             },
         });
 
