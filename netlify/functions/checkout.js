@@ -7,12 +7,10 @@ const COURSE_PRICES = {
     Presencial: 499.90,
 };
 
-// --- INÍCIO DA ATUALIZAÇÃO ---
 // Adicionamos o hash esperado do contrato para validação no backend.
 // Este hash deve corresponder exatamente ao hash no seu arquivo index.html.
 const ACCEPTED_CONTRACT_VERSION = 'v1.0';
 const ACCEPTED_CONTRACT_HASH = '88559760E4DAF2CEF94D9F5B7069CBCC9A5196106CD771227DB2500EFFBEDD0E';
-// --- FIM DA ATUALIZAÇÃO ---
 
 exports.handler = async (event) => {
     // 1. Validação inicial: Apenas aceitamos requisições POST
@@ -25,10 +23,8 @@ exports.handler = async (event) => {
 
     try {
         const data = JSON.parse(event.body);
-        // --- INÍCIO DA ATUALIZAÇÃO ---
         // Extraímos o contractHash dos dados recebidos do formulário.
         const { name, email, cpf, phone, modality, contract, contractVersion, contractHash } = data;
-        // --- FIM DA ATUALIZAÇÃO ---
 
         // 2. Validação dos dados recebidos
         if (!name || !email || !cpf || !phone || !modality) {
@@ -46,7 +42,6 @@ exports.handler = async (event) => {
             };
         }
         
-        // --- INÍCIO DA ATUALIZAÇÃO ---
         // Nova validação para garantir a integridade do contrato.
         if (contractHash !== ACCEPTED_CONTRACT_HASH) {
             return {
@@ -54,7 +49,6 @@ exports.handler = async (event) => {
                 body: JSON.stringify({ error: 'A assinatura do contrato é inválida. Por favor, recarregue a página e tente novamente.' }),
             };
         }
-        // --- FIM DA ATUALIZAÇÃO ---
 
         const coursePrice = COURSE_PRICES[modality];
         if (!coursePrice) {
@@ -79,13 +73,19 @@ exports.handler = async (event) => {
             customer: {
                 name,
                 email,
-                cpfCnpj: cpf, // O front-end já remove a formatação
-                mobilePhone: phone, // O front-end já remove a formatação
+                cpfCnpj: cpf,
+                mobilePhone: phone,
             },
             billingType: 'UNDEFINED',
             value: coursePrice,
             dueDate: dueDate,
             description: `Inscrição no curso "Fazendo as Pazes com o seu TDAH" - Modalidade ${modality}`,
+            // --- INÍCIO DA ATUALIZAÇÃO ---
+            // Adicionamos as URLs de redirecionamento para o Asaas.
+            // O process.env.URL é fornecido automaticamente pelo Netlify com a URL principal do seu site.
+            redirectUrl: `${process.env.URL}/obrigado/`,
+            backUrl: `${process.env.URL}/cancelado/`,
+            // --- FIM DA ATUALIZAÇÃO ---
         };
 
         // 4. Chamada à API do Asaas
