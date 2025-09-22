@@ -1,60 +1,101 @@
-// netlify/functions/webhook.js
-const ok  = (obj) => ({ statusCode: 200, headers: { "Content-Type":"application/json" }, body: JSON.stringify(obj||{ok:true}) });
+// Importa as novas bibliotecas
+const { google } = require('googleapis');
+const { Resend } = require('resend');
+
+// --- Seu código de webhook existente ---
+const ok = (obj) => ({ statusCode: 200, headers: { "Content-Type":"application/json" }, body: JSON.stringify(obj||{ok:true}) });
 const err = (code, msg) => ({ statusCode: code, body: msg });
 
-exports.handler = async (event) => {
-  if (event.httpMethod !== "POST") return err(405, "Method Not Allowed");
+// Função para adicionar dados à Planilha Google
+async function appendToSheet(paymentData) {
+    try {
+        const auth = new google.auth.GoogleAuth({
+            credentials: {
+                client_email: process.env.GOOGLE_SERVICE_ACCOUNT_EMAIL,
+                // Corrige a formatação da chave privada que vem do Netlify
+                private_key: process.env.GOOGLE_PRIVATE_KEY.replace(/\\n/g, '\n'),
+            },
+            scopes: ['https://www.googleapis.com/auth/spreadsheets'],
+        });
 
-  // Normaliza headers (case-insensitive) e também remove - e _
-  const raw = event.headers || {};
-  const normKey = (s) => (s || "").toLowerCase().replace(/[-_]/g, "");
-  const H = {};
-  for (const [k,v] of Object.entries(raw)) H[normKey(k)] = v;
+        const sheets = google.sheets({ version: 'v4', auth });
+        
+        const newRow = [
+            new Date().toLocaleString('pt-BR'), // Data Inscrição
+            paymentData.customer.name,          // Nome
+            paymentData.customer.email,         // Email
+            paymentData.description.includes('Online') ? 'Online' : 'Presencial', // Modalidade
+            paymentData.value,                  // Valor
+            paymentData.status,                 // Status Pagamento
+            paymentData.id,                     // ID Pagamento
+        ];
 
-  // 1) Autenticação por token
-  const expected = (process.env.ASAAS_WEBHOOK_TOKEN || "").trim();
-  const got = (
-    H["asaasaccesstoken"] ||       // asaas-access-token / asaas_access_token
-    H["xasaasaccesstoken"] ||      // alguma CDN pode prefixar
-    (H["authorization"] || "").replace(/^bearer\s+/i,"") // fallback
-  ).trim();
+        await sheets.spreadsheets.values.append({
+            spreadsheetId: process.env.GOOGLE_SHEET_ID,
+            range: 'A1', // A API vai encontrar a próxima linha vazia automaticamente
+            valueInputOption: 'USER_ENTERED',
+            resource: {
+                values: [newRow],
+            },
+        });
+        console.log('Dados adicionados à planilha com sucesso.');
 
-  if (expected && got !== expected) {
-    console.log("WEBHOOK AUTH FAIL", {
-      expectedSet: !!expected,
-      gotPresent: !!got,
-      gotSample: got ? got.slice(0,4)+"…"+got.slice(-4) : "",
-      headersSeen: Object.keys(H).slice(0,10)
-    });
-    return err(401, "Unauthorized");
-  }
-
-  // 2) Parse do payload
-  let n = {};
-  try { n = JSON.parse(event.body || "{}"); } catch { return ok({ ignored:true, reason:"bad json" }); }
-
-  const type = n.event || n.type || "";
-  const paymentId = n?.payment?.id || n?.data?.id || null;
-
-  // 3) (Opcional, recomendado) confirmar status no Asaas
-  let confirmed = false;
-  try {
-    if (paymentId) {
-      const base = process.env.ASAAS_BASE || "https://api-sandbox.asaas.com/v3";
-      const r = await fetch(`${base}/payments/${paymentId}`, {
-        headers: { "access_token": process.env.ASAAS_API_KEY }
-      });
-      const pay = await r.json();
-      const st = String(pay?.status || "").toUpperCase(); // RECEIVED / CONFIRMED etc.
-      confirmed = ["RECEIVED","RECEIVED_IN_CASH","CONFIRMED"].includes(st);
-      console.log("PAYMENT CHECK:", paymentId, st);
-    } else if (["CHECKOUT_PAID","PAYMENT_CONFIRMED","PAYMENT_RECEIVED"].includes(type)) {
-      confirmed = true;
+    } catch (error) {
+        console.error('Erro ao adicionar dados na planilha:', error);
+        // Não retornamos um erro aqui para não falhar o webhook inteiro
     }
-  } catch (e) {
-    console.log("PAYMENT CHECK ERROR:", e.message);
-  }
+}
 
-  console.log("WEBHOOK OK:", { type, paymentId, confirmed });
-  return ok({ received:true, type, paymentId, confirmed });
+// Função para enviar o e-mail de boas-vindas
+async function sendWelcomeEmail(paymentData) {
+    try {
+        const resend = new Resend(process.env.RESEND_API_KEY);
+
+        await resend.emails.send({
+            // Para testes, o Resend usa 'onboarding@resend.dev'. Para produção, você precisa verificar seu domínio.
+            from: 'onboarding@resend.dev',
+            to: paymentData.customer.email,
+            subject: 'Sua inscrição no curso "Fazendo as Pazes com o seu TDAH" foi confirmada!',
+            html: `
+                <h1>Olá, ${paymentData.customer.name}!</h1>
+                <p>Seja muito bem-vindo(a)! Sua inscrição no curso <strong>Fazendo as Pazes com o seu TDAH</strong> foi confirmada com sucesso.</p>
+                <p>Modalidade: ${paymentData.description.includes('Online') ? 'Online' : 'Presencial'}</p>
+                <p>Em breve você receberá mais informações sobre o início das aulas.</p>
+                <p>Atenciosamente,<br>Equipe Fazendo as Pazes com o seu TDAH</p>
+            `,
+        });
+        console.log('E-mail de boas-vindas enviado com sucesso.');
+    } catch (error) {
+        console.error('Erro ao enviar e-mail:', error);
+    }
+}
+
+
+exports.handler = async (event) => {
+    // --- Todo o seu código de validação de token e parse do payload continua aqui ---
+    if (event.httpMethod !== "POST") return err(405, "Method Not Allowed");
+    const H = {};
+    for (const [k,v] of Object.entries(event.headers || {})) H[(k || "").toLowerCase().replace(/[-_]/g, "")] = v;
+    const expected = (process.env.ASAAS_WEBHOOK_TOKEN || "").trim();
+    const got = (H["asaasaccesstoken"] || H["xasaasaccesstoken"] || (H["authorization"] || "").replace(/^bearer\s+/i,"")).trim();
+    if (expected && got !== expected) return err(401, "Unauthorized");
+
+    let n = {};
+    try { n = JSON.parse(event.body || "{}"); } catch { return ok({ ignored:true, reason:"bad json" }); }
+
+    const payment = n.payment || {}; // Pegamos o objeto de pagamento inteiro
+
+    // --- LÓGICA DE NEGÓCIO ---
+    // Verificamos se o status é confirmado
+    if (payment.status === 'CONFIRMED' || payment.status === 'RECEIVED') {
+        
+        // Executamos as duas novas ações em paralelo para mais eficiência
+        await Promise.all([
+            appendToSheet(payment),
+            sendWelcomeEmail(payment)
+        ]);
+    }
+
+    console.log("WEBHOOK PROCESSADO:", { type: n.event, paymentId: payment.id, status: payment.status });
+    return ok({ received: true });
 };
