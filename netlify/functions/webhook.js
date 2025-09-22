@@ -46,19 +46,16 @@ async function appendToSheet(fullPaymentData) {
     }
 }
 
-// NOVA FUNÇÃO para enviar o e-mail de boas-vindas com Nodemailer e Gmail
+// Função para enviar o e-mail de boas-vindas com Nodemailer e Gmail (sem alterações)
 async function sendWelcomeEmail(fullPaymentData) {
     try {
         const { GMAIL_ADDRESS, GMAIL_CLIENT_ID, GMAIL_CLIENT_SECRET, GMAIL_REFRESH_TOKEN } = process.env;
 
-        // Configura o cliente OAuth2
         const oauth2Client = new OAuth2Client(GMAIL_CLIENT_ID, GMAIL_CLIENT_SECRET, 'https://developers.google.com/oauthplayground');
         oauth2Client.setCredentials({ refresh_token: GMAIL_REFRESH_TOKEN });
 
-        // Obtém um novo token de acesso
         const accessToken = await oauth2Client.getAccessToken();
 
-        // Configura o "transporter" do Nodemailer
         const transporter = nodemailer.createTransport({
             service: 'gmail',
             auth: {
@@ -71,7 +68,6 @@ async function sendWelcomeEmail(fullPaymentData) {
             },
         });
 
-        // Envia o e-mail
         const mailOptions = {
             from: `Fazendo as Pazes com o TDAH <${GMAIL_ADDRESS}>`,
             to: fullPaymentData.customer.email,
@@ -88,10 +84,53 @@ async function sendWelcomeEmail(fullPaymentData) {
         const result = await transporter.sendMail(mailOptions);
         console.log('E-mail de boas-vindas enviado com sucesso:', result.response);
 
-    } catch (error)        console.error("Erro ao processar lógica de negócio do webhook:", error.response ? error.response.data : error.message);
+    } catch (error) {
+        console.error('Erro ao tentar enviar e-mail com Nodemailer:', error);
+    }
+}
+
+
+exports.handler = async (event) => {
+    // --- Validação do webhook (sem alterações) ---
+    if (event.httpMethod !== "POST") return err(405, "Method Not Allowed");
+    const H = {};
+    for (const [k,v] of Object.entries(event.headers || {})) H[(k || "").toLowerCase().replace(/[-_]/g, "")] = v;
+    const expected = (process.env.ASAAS_WEBHOOK_TOKEN || "").trim();
+    const got = (H["asaasaccesstoken"] || H["xasaasaccesstoken"] || (H["authorization"] || "").replace(/^bearer\s+/i,"")).trim();
+    if (expected && got !== expected) return err(401, "Unauthorized");
+
+    let n = {};
+    try { n = JSON.parse(event.body || "{}"); } catch { return ok({ ignored:true, reason:"bad json" }); }
+
+    const payment = n.payment || {}; 
+
+    // --- Lógica de Negócio ---
+    if (payment.status === 'CONFIRMED' || payment.status === 'RECEIVED') {
+        try {
+            const customerId = payment.customer;
+            const ASAAS_API_KEY = process.env.ASAAS_API_KEY;
+            const asaasApiUrl = `https://sandbox.asaas.com/api/v3/customers/${customerId}`;
+            
+            const customerResponse = await axios.get(asaasApiUrl, {
+                headers: { 'access_token': ASAAS_API_KEY }
+            });
+            
+            const fullPaymentData = {
+                ...payment,
+                customer: customerResponse.data 
+            };
+            
+            await Promise.all([
+                appendToSheet(fullPaymentData),
+                sendWelcomeEmail(fullPaymentData)
+            ]);
+
+        } catch (error) {
+            console.error("Erro ao processar lógica de negócio do webhook:", error.response ? error.response.data : error.message);
         }
     }
 
     console.log("WEBHOOK PROCESSADO:", { type: n.event, paymentId: payment.id, status: payment.status });
     return ok({ received: true });
 };
+
