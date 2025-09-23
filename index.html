@@ -62,17 +62,12 @@
 
                     <!-- Endereço -->
                     <h3 class="text-lg font-semibold border-b pb-2 pt-4 text-[#1A2A4C]">Endereço</h3>
-                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                        <div class="sm:col-span-1">
-                            <label for="cep" class="block text-sm font-medium text-[#1A2A4C]/90">CEP</label>
-                            <input type="text" id="cep" name="cep" required class="mt-1 block w-full px-4 py-3 bg-gray-50 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-[#4B3F8F] focus:border-transparent transition" placeholder="00000-000">
-                        </div>
-                         <div class="sm:col-span-2 text-xs text-gray-500 pt-8">
-                            Digite seu CEP e aguarde o preenchimento automático.
-                        </div>
+                    <div>
+                        <label for="cep" class="block text-sm font-medium text-[#1A2A4C]/90">CEP</label>
+                        <input type="text" id="cep" name="cep" required class="mt-1 block w-full px-4 py-3 bg-gray-50 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-[#4B3F8F] focus:border-transparent transition" placeholder="00000-000">
                     </div>
                     <div>
-                        <label for="address" class="block text-sm font-medium text-[#1A2A4C]/90">Endereço (Rua, Av.)</label>
+                        <label for="address" class="block text-sm font-medium text-[#1A2A4C]/90">Endereço</label>
                         <input type="text" id="address" name="address" required class="mt-1 block w-full px-4 py-3 bg-gray-50 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-[#4B3F8F] focus:border-transparent transition">
                     </div>
                     <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
@@ -84,6 +79,10 @@
                             <label for="complement" class="block text-sm font-medium text-[#1A2A4C]/90">Complemento (Opcional)</label>
                             <input type="text" id="complement" name="complement" class="mt-1 block w-full px-4 py-3 bg-gray-50 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-[#4B3F8F] focus:border-transparent transition" placeholder="Apto, bloco, casa, etc.">
                         </div>
+                    </div>
+                    <div>
+                        <label for="bairro" class="block text-sm font-medium text-[#1A2A4C]/90">Bairro</label>
+                        <input type="text" id="bairro" name="bairro" required class="mt-1 block w-full px-4 py-3 bg-gray-50 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-[#4B3F8F] focus:border-transparent transition">
                     </div>
                      <div>
                         <label for="city" class="block text-sm font-medium text-[#1A2A4C]/90">Cidade - Estado</label>
@@ -161,7 +160,7 @@
     <script>
         // --- CONSTANTES E VARIÁVEIS GLOBAIS ---
         const CONTRACT_VERSION = 'v1.0';
-        const CONTRACT_HASH = '88559760E4DAF2CEF94D9F5B7069CBCC9A5196106CD771227DB2500EFFBEDD0E';
+        const CONTRACT_HASH = '88559760E4DAFCEF94D9F5B7069CBCC9A5196106CD771227DB2500EFFBEDD0E';
         const form = document.getElementById('enrollment-form');
         const submitButton = document.getElementById('submit-button');
         const buttonText = submitButton.querySelector('.button-text');
@@ -170,6 +169,7 @@
         
         const cepInput = document.getElementById('cep');
         const addressInput = document.getElementById('address');
+        const bairroInput = document.getElementById('bairro');
         const cityInput = document.getElementById('city');
         const addressNumberInput = document.getElementById('addressNumber');
 
@@ -220,8 +220,10 @@
 
         async function fetchAddress(cep) {
             addressInput.value = 'Buscando...';
+            bairroInput.value = 'Buscando...';
             cityInput.value = 'Buscando...';
             addressInput.classList.add('address-loading');
+            bairroInput.classList.add('address-loading');
             cityInput.classList.add('address-loading');
 
             try {
@@ -232,16 +234,19 @@
                     throw new Error('CEP não encontrado.');
                 }
 
-                addressInput.value = `${data.logradouro}, ${data.bairro}`;
+                addressInput.value = data.logradouro;
+                bairroInput.value = data.bairro;
                 cityInput.value = `${data.localidade} - ${data.uf}`;
-                addressNumberInput.focus(); // Move o foco para o campo de número
+                addressNumberInput.focus(); 
 
             } catch (error) {
                 addressInput.value = '';
+                bairroInput.value = '';
                 cityInput.value = '';
                 messageContainer.textContent = error.message;
             } finally {
                 addressInput.classList.remove('address-loading');
+                bairroInput.classList.remove('address-loading');
                 cityInput.classList.remove('address-loading');
             }
         }
@@ -275,6 +280,7 @@
                 address: formData.get('address'),
                 addressNumber: formData.get('addressNumber'),
                 complement: formData.get('complement'),
+                bairro: formData.get('bairro'),
                 city: formData.get('city'),
                 modality: formData.get('modality'),
                 paymentMethod: formData.get('paymentMethod'),
