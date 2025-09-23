@@ -13,6 +13,12 @@ const coursePrices = {
     }
 };
 
+// --- CUPONS VÁLIDOS ---
+// A chave é o código do cupom (em maiúsculas) e o valor é o desconto (0.15 = 15%)
+const validCoupons = {
+    'ZAP15': 0.15 
+};
+
 const ACCEPTED_CONTRACT_VERSION = 'v1.0';
 const ACCEPTED_CONTRACT_HASH = '88559760E4DAF2CEF94D9F5B7069CBCC9A5196106CD771227DB2500EFFBEDD0E';
 
@@ -28,7 +34,7 @@ exports.handler = async (event) => {
             name, email, cpf, phone, 
             cep, address, addressNumber, complement, bairro, city,
             modality, paymentMethod, installments,
-            objective, source, 
+            objective, source, coupon,
             contract, contractVersion, contractHash 
         } = data;
 
@@ -42,8 +48,10 @@ exports.handler = async (event) => {
             return { statusCode: 400, body: JSON.stringify({ error: 'Você deve aceitar a versão mais recente do contrato.' }) };
         }
 
-        // Determinar o preço
+        // Determinar o preço e o billingType
         let coursePrice;
+        let billingType = paymentMethod;
+
         const pricesForModality = coursePrices[modality];
         if (!pricesForModality) {
             return { statusCode: 400, body: JSON.stringify({ error: 'Modalidade de curso inválida.' }) };
@@ -58,52 +66,47 @@ exports.handler = async (event) => {
         if (!coursePrice) {
             return { statusCode: 400, body: JSON.stringify({ error: 'Opção de pagamento ou parcelamento inválida.' }) };
         }
+        
+        // --- VALIDAÇÃO E APLICAÇÃO DO CUPOM ---
+        const discountPercentage = validCoupons[coupon.toUpperCase()] || 0;
+        if (discountPercentage > 0) {
+            coursePrice *= (1 - discountPercentage);
+        }
+        // ------------------------------------
 
         const ASAAS_API_KEY = process.env.ASAAS_API_KEY;
         if (!ASAAS_API_KEY) throw new Error("Chave da API do Asaas não configurada.");
-        
         const asaasApiUrl = 'https://sandbox.asaas.com/api/v3';
         const today = new Date();
         const dueDate = new Date(today.setDate(today.getDate() + 5)).toISOString().split('T')[0];
 
-        // --- LÓGICA DE CRIAÇÃO DE CLIENTE E PAGAMENTO ---
         const payload = {
-            billingType: paymentMethod,
+            billingType,
             value: coursePrice,
             dueDate,
             description: `Inscrição no curso "Fazendo as Pazes com o seu TDAH" - Modalidade ${modality}`,
-            externalReference: JSON.stringify({ objective, source }),
+            externalReference: JSON.stringify({ objective, source, coupon: coupon.toUpperCase() || '' }),
             callback: {
                 successUrl: `${process.env.URL}/obrigado/`,
                 autoRedirect: true,
             },
         };
 
+        // Lógica de parcelamento e criação de cliente
         if (paymentMethod === 'CREDIT_CARD') {
-            // Passo 1: Criar o cliente primeiro para obter o ID
+            // 1. Criar/encontrar o cliente primeiro
             const customerPayload = { name, email, cpfCnpj: cpf, mobilePhone: phone, postalCode: cep, address, addressNumber, complement, province: bairro };
-            const customerResponse = await axios.post(`${asaasApiUrl}/customers`, customerPayload, {
-                headers: { 'access_token': ASAAS_API_KEY }
-            });
-            const customerId = customerResponse.data.id;
+            const customerResponse = await axios.post(`${asaasApiUrl}/customers`, customerPayload, { headers: { 'access_token': ASAAS_API_KEY }});
+            payload.customer = customerResponse.data.id;
 
-            // Passo 2: Usar o ID do cliente no payload de pagamento
-            payload.customer = customerId;
-            
-            // --- CORREÇÃO APLICADA AQUI ---
-            // Adicionar detalhes do parcelamento APENAS se for mais de 1 parcela, conforme a documentação do Asaas.
+            // 2. Adicionar dados de parcelamento se for > 1
             if (installments > 1) {
                 payload.installmentCount = installments;
                 payload.installmentValue = parseFloat((coursePrice / installments).toFixed(2));
             }
-            // Se for 1 parcela, não enviamos os campos de parcelamento. O Asaas tratará como "à vista".
-            // ------------------------------------
-
         } else {
-            // Para Boleto, podemos enviar os dados do cliente diretamente
-            payload.customer = { name, email, cpfCnpj: cpf, mobilePhone: phone, postalCode: cep, address, addressNumber, complement, province: bairro };
+             payload.customer = { name, email, cpfCnpj: cpf, mobilePhone: phone, postalCode: cep, address, addressNumber, complement, province: bairro };
         }
-        // ----------------------------------------------------
 
         const response = await axios.post(`${asaasApiUrl}/payments`, payload, {
             headers: {
