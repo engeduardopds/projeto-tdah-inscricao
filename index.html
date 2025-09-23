@@ -21,7 +21,6 @@
         @keyframes spin {
             to { transform: rotate(360deg); }
         }
-        /* Estilo para campos desativados durante a busca do CEP */
         .address-loading {
             background-color: #e9e9e9 !important;
             cursor: wait;
@@ -32,7 +31,6 @@
 
     <div class="w-full max-w-lg mx-auto">
 
-        <!-- Header -->
         <header class="text-center mb-8">
             <h1 class="text-3xl md:text-4xl font-bold text-[#1A2A4C]">Fazendo as Pazes com o seu TDAH</h1>
             <p class="mt-2 text-lg text-[#1A2A4C]/80">Preencha os dados abaixo para garantir sua vaga.</p>
@@ -123,6 +121,27 @@
                             <select id="installments" name="installments" class="mt-1 block w-full pl-3 pr-10 py-3 text-base bg-gray-50 border-gray-300 focus:outline-none focus:ring-[#4B3F8F] focus:border-[#4B3F8F] sm:text-sm rounded-lg shadow-sm transition"></select>
                         </div>
                     </div>
+
+                    <!-- Novas Perguntas -->
+                     <h3 class="text-lg font-semibold border-b pb-2 pt-4 text-[#1A2A4C]">Sobre Você</h3>
+                     <div class="space-y-5">
+                         <div>
+                             <label for="objective" class="block text-sm font-medium text-[#1A2A4C]/90">Qual o seu principal objetivo com o curso?</label>
+                             <select id="objective" name="objective" required class="mt-1 block w-full pl-3 pr-10 py-3 text-base bg-gray-50 border-gray-300 focus:outline-none focus:ring-[#4B3F8F] focus:border-[#4B3F8F] sm:text-sm rounded-lg shadow-sm transition">
+                                 <option>Sou profissional da saúde e busco aprimoramento</option>
+                                 <option>Tenho TDAH e busco autoconhecimento</option>
+                                 <option>Convivo com alguém com TDAH e busco compreensão</option>
+                             </select>
+                         </div>
+                         <div>
+                             <label for="source" class="block text-sm font-medium text-[#1A2A4C]/90">Como ficou sabendo do curso?</label>
+                             <select id="source" name="source" required class="mt-1 block w-full pl-3 pr-10 py-3 text-base bg-gray-50 border-gray-300 focus:outline-none focus:ring-[#4B3F8F] focus:border-[#4B3F8F] sm:text-sm rounded-lg shadow-sm transition">
+                                 <option>Instagram</option>
+                                 <option>Indicação de amigos</option>
+                             </select>
+                         </div>
+                     </div>
+
 
                     <!-- Contrato -->
                     <div class="flex items-start pt-2">
@@ -284,6 +303,8 @@
                 modality: formData.get('modality'),
                 paymentMethod: formData.get('paymentMethod'),
                 installments: formData.get('installments'),
+                objective: formData.get('objective'),
+                source: formData.get('source'),
                 contract: formData.get('contract') === 'on',
                 contractVersion: CONTRACT_VERSION,
                 contractHash: CONTRACT_HASH
