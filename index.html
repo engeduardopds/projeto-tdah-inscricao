@@ -78,7 +78,7 @@
                                 <span class="text-sm font-medium text-[#1A2A4C]">Cartão de Crédito</span>
                             </label>
                             <label class="flex items-center justify-center text-center p-4 border border-gray-300 rounded-lg cursor-pointer hover:bg-gray-50 transition has-[:checked]:bg-blue-50 has-[:checked]:border-blue-400 has-[:checked]:ring-2 has-[:checked]:ring-blue-400">
-                                <input type="radio" name="paymentMethod" value="UNDEFINED" class="sr-only">
+                                <input type="radio" name="paymentMethod" value="BOLETO" class="sr-only">
                                 <span class="text-sm font-medium text-[#1A2A4C]">Boleto ou PIX</span>
                             </label>
                         </div>
@@ -140,11 +140,11 @@
         // Esta estrutura de preços no frontend deve ser um espelho daquela no backend.
         const coursePrices = {
             Online: {
-                UNDEFINED: 800.00,
+                BOLETO: 800.00,
                 CREDIT_CARD: { 1: 830.00, 2: 830.97, 3: 831.48, 4: 831.99, 5: 832.49, 6: 832.99 }
             },
             Presencial: {
-                UNDEFINED: 900.00,
+                BOLETO: 900.00,
                 CREDIT_CARD: { 1: 930.00, 2: 934.59, 3: 935.09, 4: 935.60, 5: 936.11, 6: 936.61 }
             }
         };
@@ -178,10 +178,10 @@
                     installmentsSelect.appendChild(option);
                 }
             } else {
-                // Para Boleto ou PIX
+                // Para Boleto ou PIX, o método é BOLETO
                 const option = document.createElement('option');
                 option.value = 1;
-                const totalPrice = pricesForModality[selectedMethod]; // O método será UNDEFINED
+                const totalPrice = pricesForModality[selectedMethod]; 
                 option.textContent = `1x de ${formatCurrency(totalPrice)} (à vista)`;
                 installmentsSelect.appendChild(option);
             }
