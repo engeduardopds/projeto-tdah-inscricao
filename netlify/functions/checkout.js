@@ -90,10 +90,16 @@ exports.handler = async (event) => {
             },
         };
 
-        if (paymentMethod === 'CREDIT_CARD' && installments > 1) {
+        // --- ALTERAÇÃO APLICADA AQUI ---
+        // Se o pagamento for no cartão de crédito, informamos sempre o número de parcelas (mesmo que seja 1)
+        // para forçar a interface do Asaas a mostrar apenas a opção de crédito.
+        if (paymentMethod === 'CREDIT_CARD') {
             payload.installmentCount = installments;
-            payload.installmentValue = parseFloat((coursePrice / installments).toFixed(2));
+            if (installments > 1) {
+                payload.installmentValue = parseFloat((coursePrice / installments).toFixed(2));
+            }
         }
+        // ------------------------------------
 
         const response = await axios.post(asaasApiUrl, payload, {
             headers: {
