@@ -1,33 +1,29 @@
 // Importa a biblioteca axios para fazer requisições HTTP
 const axios = require('axios');
 
-// --- NOVA ESTRUTURA DE PREÇOS DETALHADA ---
-// Mantenha os preços aqui. Esta é a fonte da verdade.
+// --- ESTRUTURA DE PREÇOS ATUALIZADA ---
+// UNDEFINED permite que o cliente escolha entre Boleto e PIX na página do Asaas.
 const COURSE_PRICES = {
     Online: {
-        BOLETO: 800.00,
-        PIX: 800.00,
-        DEBIT_CARD: 816.78, // Valor da sua tabela, pode ser ajustado
+        UNDEFINED: 800.00, // Preço para Boleto ou PIX
         CREDIT_CARD: {
-            1: 830.00, // 1x (à vista)
+            1: 830.00,
             2: 830.97,
             3: 831.48,
             4: 831.99,
             5: 832.49,
-            6: 832.99, // Adicionei um valor para 6x, pode ajustar
+            6: 832.99,
         }
     },
     Presencial: {
-        BOLETO: 900.00,
-        PIX: 900.00,
-        DEBIT_CARD: 918.70, // Valor da sua tabela, pode ser ajustado
+        UNDEFINED: 900.00, // Preço para Boleto ou PIX
         CREDIT_CARD: {
-            1: 930.00, // 1x (à vista)
+            1: 930.00,
             2: 934.59,
             3: 935.09,
             4: 935.60,
             5: 936.11,
-            6: 936.61, // Adicionei um valor para 6x, pode ajustar
+            6: 936.61,
         }
     }
 };
@@ -54,7 +50,7 @@ exports.handler = async (event) => {
 
         const installmentCount = parseInt(installments, 10) || 1;
 
-        // --- LÓGICA PARA OBTER O PREÇO CORRETO ---
+        // Lógica para obter o preço correto
         let coursePrice;
         const pricesForModality = COURSE_PRICES[modality];
 
@@ -65,13 +61,13 @@ exports.handler = async (event) => {
         if (paymentMethod === 'CREDIT_CARD') {
             coursePrice = pricesForModality.CREDIT_CARD[installmentCount];
         } else {
-            coursePrice = pricesForModality[paymentMethod];
+            // Para "Boleto ou PIX", o valor de paymentMethod será "UNDEFINED"
+            coursePrice = pricesForModality[paymentMethod]; 
         }
         
         if (!coursePrice) {
             return { statusCode: 400, body: JSON.stringify({ error: 'Opção de pagamento ou parcela inválida.' }) };
         }
-        // --- FIM DA LÓGICA DE PREÇO ---
 
         if (installmentCount > 6) {
              return { statusCode: 400, body: JSON.stringify({ error: 'O número máximo de parcelas é 6.' }) };
