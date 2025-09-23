@@ -36,7 +36,7 @@
         <main class="bg-white rounded-2xl shadow-lg p-6 md:p-8 transition-all duration-300">
             <form id="enrollment-form">
                 <div class="space-y-5">
-                    <!-- Campos de Dados Pessoais (Nome, E-mail, CPF, Celular) -->
+                    <!-- Campos de Dados Pessoais -->
                     <div>
                         <label for="name" class="block text-sm font-medium text-[#1A2A4C]/90">Nome Completo</label>
                         <input type="text" id="name" name="name" required class="mt-1 block w-full px-4 py-3 bg-gray-50 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-[#4B3F8F] focus:border-transparent transition" placeholder="Seu nome completo">
@@ -145,30 +145,52 @@
         const installmentsSelect = document.getElementById('installments');
         const modalityRadios = document.querySelectorAll('input[name="modality"]');
 
-        const coursePrices = { Online: 599.90, Presencial: 999.90 };
-        const maxInstallments = 6;
+        // Esta estrutura de preços no frontend deve ser um espelho daquela no backend.
+        const coursePrices = {
+            Online: {
+                BOLETO: 800.00, PIX: 800.00, DEBIT_CARD: 816.78,
+                CREDIT_CARD: { 1: 830.00, 2: 830.97, 3: 831.48, 4: 831.99, 5: 832.49, 6: 832.99 }
+            },
+            Presencial: {
+                BOLETO: 900.00, PIX: 900.00, DEBIT_CARD: 918.70,
+                CREDIT_CARD: { 1: 930.00, 2: 934.59, 3: 935.09, 4: 935.60, 5: 936.11, 6: 936.61 }
+            }
+        };
+
+        function formatCurrency(value) {
+            return `R$ ${value.toFixed(2).replace('.', ',')}`;
+        }
 
         function updateInstallmentOptions() {
             const selectedMethod = document.querySelector('input[name="paymentMethod"]:checked').value;
             const selectedModality = document.querySelector('input[name="modality"]:checked').value;
-            const price = coursePrices[selectedModality];
+            const pricesForModality = coursePrices[selectedModality];
             
             installmentsSelect.innerHTML = ''; // Limpa as opções atuais
 
-            const max = (selectedMethod === 'CREDIT_CARD') ? maxInstallments : 1;
+            if (selectedMethod === 'CREDIT_CARD') {
+                const creditCardPrices = pricesForModality.CREDIT_CARD;
+                for (const numInstallments in creditCardPrices) {
+                    const option = document.createElement('option');
+                    option.value = numInstallments;
+                    
+                    const totalPrice = creditCardPrices[numInstallments];
+                    const totalFormatted = formatCurrency(totalPrice);
 
-            for (let i = 1; i <= max; i++) {
-                const option = document.createElement('option');
-                option.value = i;
-                
-                const totalFormatted = `R$ ${price.toFixed(2).replace('.', ',')}`;
-
-                if (i === 1) {
-                    option.textContent = `1x de ${totalFormatted} (à vista)`;
-                } else {
-                    const installmentValue = (price / i).toFixed(2).replace('.', ',');
-                    option.textContent = `${i}x de R$ ${installmentValue} (Total: ${totalFormatted})`;
+                    if (numInstallments == 1) {
+                        option.textContent = `1x de ${totalFormatted} (à vista)`;
+                    } else {
+                        const installmentValue = formatCurrency(totalPrice / numInstallments);
+                        option.textContent = `${numInstallments}x de ${installmentValue} (Total: ${totalFormatted})`;
+                    }
+                    installmentsSelect.appendChild(option);
                 }
+            } else {
+                // Para Boleto, PIX e Débito
+                const option = document.createElement('option');
+                option.value = 1;
+                const totalPrice = pricesForModality[selectedMethod];
+                option.textContent = `1x de ${formatCurrency(totalPrice)} (à vista)`;
                 installmentsSelect.appendChild(option);
             }
         }
