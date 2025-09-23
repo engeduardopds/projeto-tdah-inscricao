@@ -48,7 +48,7 @@ async function sendWelcomeEmail(customerData) {
 }
 
 // Função para adicionar os dados na planilha
-async function appendToSheet(customerData, paymentData, totalInstallments) {
+async function appendToSheet(customerData, paymentData, totalInstallments, objective, source) {
     try {
         const auth = new GoogleAuth({
             credentials: {
@@ -70,6 +70,8 @@ async function appendToSheet(customerData, paymentData, totalInstallments) {
             paymentData.id,
             paymentData.billingType === 'CREDIT_CARD' ? 'Cartão de Crédito' : 'Boleto ou PIX',
             paymentData.billingType === 'CREDIT_CARD' ? totalInstallments : '-',
+            objective,
+            source,
         ];
 
         await sheets.spreadsheets.values.append({
@@ -119,9 +121,7 @@ exports.handler = async (event) => {
         });
         const customerData = customerResponse.data;
 
-        let totalInstallments = 1; // Padrão para pagamentos à vista
-        
-        // Se for um pagamento parcelado, busca o total de parcelas
+        let totalInstallments = 1; 
         if (paymentData.installment) {
             try {
                 const installmentResponse = await axios.get(`https://sandbox.asaas.com/api/v3/installments/${paymentData.installment}`, {
@@ -134,10 +134,23 @@ exports.handler = async (event) => {
                 console.error("Erro ao buscar detalhes do parcelamento:", e.message);
             }
         }
+        
+        // Obter os dados extras da externalReference
+        let objective = 'N/A';
+        let source = 'N/A';
+        if (paymentData.externalReference) {
+            try {
+                const extraData = JSON.parse(paymentData.externalReference);
+                objective = extraData.objective || 'N/A';
+                source = extraData.source || 'N/A';
+            } catch (e) {
+                console.error("Erro ao parsear externalReference:", paymentData.externalReference);
+            }
+        }
 
         // Executar as duas ações
         await Promise.all([
-            appendToSheet(customerData, paymentData, totalInstallments),
+            appendToSheet(customerData, paymentData, totalInstallments, objective, source),
             sendWelcomeEmail(customerData)
         ]);
 
