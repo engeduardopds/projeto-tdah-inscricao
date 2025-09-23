@@ -42,10 +42,8 @@ exports.handler = async (event) => {
             return { statusCode: 400, body: JSON.stringify({ error: 'Você deve aceitar a versão mais recente do contrato.' }) };
         }
 
-        // Determinar o preço e o billingType
+        // Determinar o preço
         let coursePrice;
-        let billingType = paymentMethod; // BOLETO ou CREDIT_CARD
-
         const pricesForModality = coursePrices[modality];
         if (!pricesForModality) {
             return { statusCode: 400, body: JSON.stringify({ error: 'Modalidade de curso inválida.' }) };
@@ -63,23 +61,14 @@ exports.handler = async (event) => {
 
         const ASAAS_API_KEY = process.env.ASAAS_API_KEY;
         if (!ASAAS_API_KEY) throw new Error("Chave da API do Asaas não configurada.");
-        const asaasApiUrl = 'https://sandbox.asaas.com/api/v3/payments';
+        
+        const asaasApiUrl = 'https://sandbox.asaas.com/api/v3';
         const today = new Date();
         const dueDate = new Date(today.setDate(today.getDate() + 5)).toISOString().split('T')[0];
 
+        // --- LÓGICA DE CRIAÇÃO DE CLIENTE E PAGAMENTO ---
         const payload = {
-            customer: {
-                name,
-                email,
-                cpfCnpj: cpf,
-                mobilePhone: phone,
-                postalCode: cep,
-                address,
-                addressNumber,
-                complement,
-                province: bairro, // 'province' é o campo para Bairro no Asaas
-            },
-            billingType,
+            billingType: paymentMethod,
             value: coursePrice,
             dueDate,
             description: `Inscrição no curso "Fazendo as Pazes com o seu TDAH" - Modalidade ${modality}`,
@@ -90,18 +79,27 @@ exports.handler = async (event) => {
             },
         };
 
-        // --- ALTERAÇÃO APLICADA AQUI ---
-        // Se o pagamento for no cartão de crédito, informamos sempre o número de parcelas (mesmo que seja 1)
-        // para forçar a interface do Asaas a mostrar apenas a opção de crédito.
         if (paymentMethod === 'CREDIT_CARD') {
+            // Passo 1: Criar o cliente primeiro para obter o ID
+            const customerPayload = { name, email, cpfCnpj: cpf, mobilePhone: phone, postalCode: cep, address, addressNumber, complement, province: bairro };
+            const customerResponse = await axios.post(`${asaasApiUrl}/customers`, customerPayload, {
+                headers: { 'access_token': ASAAS_API_KEY }
+            });
+            const customerId = customerResponse.data.id;
+
+            // Passo 2: Usar o ID do cliente no payload de pagamento
+            payload.customer = customerId;
             payload.installmentCount = installments;
             if (installments > 1) {
                 payload.installmentValue = parseFloat((coursePrice / installments).toFixed(2));
             }
+        } else {
+            // Para Boleto, podemos enviar os dados do cliente diretamente
+            payload.customer = { name, email, cpfCnpj: cpf, mobilePhone: phone, postalCode: cep, address, addressNumber, complement, province: bairro };
         }
-        // ------------------------------------
+        // ----------------------------------------------------
 
-        const response = await axios.post(asaasApiUrl, payload, {
+        const response = await axios.post(`${asaasApiUrl}/payments`, payload, {
             headers: {
                 'Content-Type': 'application/json',
                 'access_token': ASAAS_API_KEY,
