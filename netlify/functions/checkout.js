@@ -16,7 +16,7 @@ const coursePrices = {
 // --- CUPONS VÁLIDOS ---
 // A chave é o código do cupom (em maiúsculas) e o valor é o desconto (0.15 = 15%)
 const validCoupons = {
-    'GRUPO15': 0.15 
+    'PAZES15': 0.15 
 };
 
 const ACCEPTED_CONTRACT_VERSION = 'v1.0';
