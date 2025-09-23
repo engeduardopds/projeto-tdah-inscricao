@@ -8,7 +8,7 @@ const nodemailer = require('nodemailer');
 const ok = (obj) => ({ statusCode: 200, headers: { "Content-Type": "application/json" }, body: JSON.stringify(obj || { ok: true }) });
 const err = (code, msg) => ({ statusCode: code, body: msg });
 
-// Função para enviar o e-mail de boas-vindas
+// Função para enviar o e-mail de boas-vindas com Senha de App
 async function sendWelcomeEmail(customerData) {
     try {
         const transporter = nodemailer.createTransport({
@@ -44,7 +44,7 @@ async function sendWelcomeEmail(customerData) {
 
 
 // Função para adicionar os dados na planilha
-async function appendToSheet(customerData, paymentData, extraData) {
+async function appendToSheet(customerData, paymentData, installmentsCount, externalReference) {
     try {
         const auth = new GoogleAuth({
             credentials: {
@@ -55,6 +55,8 @@ async function appendToSheet(customerData, paymentData, extraData) {
         });
 
         const sheets = google.sheets({ version: 'v4', auth });
+        
+        const refData = JSON.parse(externalReference || '{}');
 
         const newRow = [
             new Date().toLocaleString('pt-BR'),
@@ -65,10 +67,10 @@ async function appendToSheet(customerData, paymentData, extraData) {
             paymentData.status,
             paymentData.id,
             paymentData.billingType === 'CREDIT_CARD' ? 'Cartão de Crédito' : 'Boleto ou PIX',
-            extraData.totalInstallments,
-            extraData.objective,
-            extraData.source,
-            extraData.coupon
+            installmentsCount > 1 ? installmentsCount : '-',
+            refData.objective || '',
+            refData.source || '',
+            refData.coupon || ''
         ];
 
         await sheets.spreadsheets.values.append({
@@ -103,33 +105,27 @@ exports.handler = async (event) => {
         if (eventType !== 'PAYMENT_CONFIRMED' && eventType !== 'PAYMENT_RECEIVED') {
             return ok({ received: true, ignored: true, reason: 'Event type not processed' });
         }
-        
+
         if (paymentData.installmentNumber && paymentData.installmentNumber > 1) {
-            console.log(`Ignorando parcela ${paymentData.installmentNumber}.`);
             return ok({ received: true, ignored: true, reason: 'Subsequent installment' });
         }
         
-        const asaasApiUrl = `https://sandbox.asaas.com/api/v3`;
-        const headers = { 'access_token': process.env.ASAAS_API_KEY };
+        let totalInstallments = 1;
+        // Se a notificação for de uma parcela, buscamos o total de parcelas da venda
+        if (paymentData.installment) {
+            const installmentDetails = await axios.get(`https://sandbox.asaas.com/api/v3/installments/${paymentData.installment}`, {
+                headers: { 'access_token': process.env.ASAAS_API_KEY }
+            });
+            totalInstallments = installmentDetails.data.installmentCount;
+        }
 
-        const [customerResponse, paymentDetailsResponse] = await Promise.all([
-            axios.get(`${asaasApiUrl}/customers/${paymentData.customer}`, { headers }),
-            axios.get(`${asaasApiUrl}/payments/${paymentData.id}`, { headers })
-        ]);
-        
+        const customerResponse = await axios.get(`https://sandbox.asaas.com/api/v3/customers/${paymentData.customer}`, {
+            headers: { 'access_token': process.env.ASAAS_API_KEY }
+        });
         const customerData = customerResponse.data;
-        const fullPaymentData = paymentDetailsResponse.data;
-
-        const externalReference = JSON.parse(fullPaymentData.externalReference || '{}');
-        const extraData = {
-            totalInstallments: fullPaymentData.installment ? fullPaymentData.installment.installmentCount : 1,
-            objective: externalReference.objective || '-',
-            source: externalReference.source || '-',
-            coupon: externalReference.coupon || '-'
-        };
 
         await Promise.all([
-            appendToSheet(customerData, fullPaymentData, extraData),
+            appendToSheet(customerData, paymentData, totalInstallments, paymentData.externalReference),
             sendWelcomeEmail(customerData)
         ]);
 
