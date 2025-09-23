@@ -73,7 +73,7 @@
                     <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
                          <div class="sm:col-span-1">
                             <label for="addressNumber" class="block text-sm font-medium text-[#1A2A4C]/90">Número</label>
-                            <input type="text" id="addressNumber" name="addressNumber" required class="mt-1 block w-full px-4 py-3 bg-gray-50 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-[#4B3F8F] focus:border-transparent transition">
+                            <input type="text" id="addressNumber" name="addressNumber" required class="mt-1 block w-full px-4 py-3 bg-gray-50 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-[#4B3F8F] focus:border-transparent transition" placeholder="Apenas números">
                         </div>
                         <div class="sm:col-span-2">
                             <label for="complement" class="block text-sm font-medium text-[#1A2A4C]/90">Complemento (Opcional)</label>
@@ -160,7 +160,8 @@
     <script>
         // --- CONSTANTES E VARIÁVEIS GLOBAIS ---
         const CONTRACT_VERSION = 'v1.0';
-        const CONTRACT_HASH = '88559760E4DAFCEF94D9F5B7069CBCC9A5196106CD771227DB2500EFFBEDD0E';
+        // HASH CORRIGIDO:
+        const CONTRACT_HASH = '88559760E4DAF2CEF94D9F5B7069CBCC9A5196106CD771227DB2500EFFBEDD0E';
         const form = document.getElementById('enrollment-form');
         const submitButton = document.getElementById('submit-button');
         const buttonText = submitButton.querySelector('.button-text');
@@ -317,5 +318,4 @@
     </script>
 </body>
 </html>
-
 
