@@ -13,13 +13,11 @@ const coursePrices = {
     }
 };
 
-// Versão do contrato que esperamos que o usuário aceite
 const ACCEPTED_CONTRACT_VERSION = 'v1.0';
 const ACCEPTED_CONTRACT_HASH = '88559760E4DAF2CEF94D9F5B7069CBCC9A5196106CD771227DB2500EFFBEDD0E';
 
 
 exports.handler = async (event) => {
-    // 1. Validação inicial
     if (event.httpMethod !== 'POST') {
         return { statusCode: 405, body: JSON.stringify({ error: 'Método não permitido' }) };
     }
@@ -27,39 +25,48 @@ exports.handler = async (event) => {
     try {
         const data = JSON.parse(event.body);
         const { 
-            name, email, cpf, phone, cep, address, addressNumber, complement, city,
-            modality, paymentMethod, installments, contract, contractVersion, contractHash 
+            name, email, cpf, phone, 
+            cep, address, addressNumber, complement, bairro, city,
+            modality, paymentMethod, installments,
+            objective, source, 
+            contract, contractVersion, contractHash 
         } = data;
 
-        // 2. Validação dos dados
-        if (!name || !email || !cpf || !phone || !cep || !address || !addressNumber || !city || !modality || !paymentMethod || !installments) {
-            return { statusCode: 400, body: JSON.stringify({ error: 'Todos os campos obrigatórios devem ser preenchidos.' }) };
+        // Validação dos dados essenciais
+        if (!name || !email || !cpf || !phone || !cep || !address || !addressNumber || !bairro || !city || !modality || !paymentMethod || !installments || !objective || !source) {
+            return { statusCode: 400, body: JSON.stringify({ error: 'Todos os campos são obrigatórios.' }) };
         }
+
+        // Validação do contrato
         if (!contract || contractVersion !== ACCEPTED_CONTRACT_VERSION || contractHash !== ACCEPTED_CONTRACT_HASH) {
             return { statusCode: 400, body: JSON.stringify({ error: 'Você deve aceitar a versão mais recente do contrato.' }) };
         }
 
-        // 3. Lógica de Preços
-        const numInstallments = parseInt(installments, 10);
+        // Determinar o preço e o billingType
         let coursePrice;
+        let billingType = paymentMethod; // BOLETO ou CREDIT_CARD
+
+        const pricesForModality = coursePrices[modality];
+        if (!pricesForModality) {
+            return { statusCode: 400, body: JSON.stringify({ error: 'Modalidade de curso inválida.' }) };
+        }
+
         if (paymentMethod === 'CREDIT_CARD') {
-            coursePrice = coursePrices[modality]?.CREDIT_CARD?.[numInstallments];
-        } else {
-            coursePrice = coursePrices[modality]?.BOLETO;
+            coursePrice = pricesForModality.CREDIT_CARD[installments];
+        } else { // BOLETO
+            coursePrice = pricesForModality.BOLETO;
         }
 
         if (!coursePrice) {
-            return { statusCode: 400, body: JSON.stringify({ error: 'Combinação de curso, pagamento ou parcelamento inválida.' }) };
+            return { statusCode: 400, body: JSON.stringify({ error: 'Opção de pagamento ou parcelamento inválida.' }) };
         }
 
-        // 4. Preparação para a chamada à API do Asaas
         const ASAAS_API_KEY = process.env.ASAAS_API_KEY;
         if (!ASAAS_API_KEY) throw new Error("Chave da API do Asaas não configurada.");
-        
         const asaasApiUrl = 'https://sandbox.asaas.com/api/v3/payments';
         const today = new Date();
         const dueDate = new Date(today.setDate(today.getDate() + 5)).toISOString().split('T')[0];
-        
+
         const payload = {
             customer: {
                 name,
@@ -70,30 +77,31 @@ exports.handler = async (event) => {
                 address,
                 addressNumber,
                 complement,
-                province: city.split(',')[1]?.trim() || '', // Extrai o bairro se houver
+                province: bairro, // 'province' é o campo para Bairro no Asaas
             },
-            billingType: paymentMethod,
+            billingType,
             value: coursePrice,
-            dueDate: dueDate,
+            dueDate,
             description: `Inscrição no curso "Fazendo as Pazes com o seu TDAH" - Modalidade ${modality}`,
+            externalReference: JSON.stringify({ objective, source }),
             callback: {
                 successUrl: `${process.env.URL}/obrigado/`,
                 autoRedirect: true,
             },
-            remoteIp: event.headers['x-nf-client-connection-ip'],
         };
 
-        if (paymentMethod === 'CREDIT_CARD' && numInstallments > 1) {
-            payload.installmentCount = numInstallments;
-            payload.installmentValue = parseFloat((coursePrice / numInstallments).toFixed(2));
+        if (paymentMethod === 'CREDIT_CARD' && installments > 1) {
+            payload.installmentCount = installments;
+            payload.installmentValue = parseFloat((coursePrice / installments).toFixed(2));
         }
 
-        // 5. Chamada à API do Asaas
         const response = await axios.post(asaasApiUrl, payload, {
-            headers: { 'Content-Type': 'application/json', 'access_token': ASAAS_API_KEY },
+            headers: {
+                'Content-Type': 'application/json',
+                'access_token': ASAAS_API_KEY,
+            },
         });
         
-        // 6. Retorno do sucesso
         return {
             statusCode: 200,
             body: JSON.stringify({ paymentUrl: response.data.invoiceUrl }),
