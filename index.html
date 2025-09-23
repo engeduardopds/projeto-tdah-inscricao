@@ -21,6 +21,11 @@
         @keyframes spin {
             to { transform: rotate(360deg); }
         }
+        /* Estilo para campos desativados durante a busca do CEP */
+        .address-loading {
+            background-color: #e9e9e9 !important;
+            cursor: wait;
+        }
     </style>
 </head>
 <body class="flex items-center justify-center min-h-screen p-4">
@@ -36,7 +41,8 @@
         <main class="bg-white rounded-2xl shadow-lg p-6 md:p-8 transition-all duration-300">
             <form id="enrollment-form">
                 <div class="space-y-5">
-                    <!-- Campos de Dados Pessoais -->
+                    <!-- Dados Pessoais -->
+                    <h3 class="text-lg font-semibold border-b pb-2 text-[#1A2A4C]">Dados Pessoais</h3>
                     <div>
                         <label for="name" class="block text-sm font-medium text-[#1A2A4C]/90">Nome Completo</label>
                         <input type="text" id="name" name="name" required class="mt-1 block w-full px-4 py-3 bg-gray-50 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-[#4B3F8F] focus:border-transparent transition" placeholder="Seu nome completo">
@@ -54,40 +60,70 @@
                         <input type="tel" id="phone" name="phone" required class="mt-1 block w-full px-4 py-3 bg-gray-50 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-[#4B3F8F] focus:border-transparent transition" placeholder="(99) 99999-9999">
                     </div>
 
-                    <!-- Modalidade -->
-                    <div>
-                         <label class="block text-sm font-medium text-[#1A2A4C]/90">Modalidade do Curso</label>
-                         <div class="mt-2 grid grid-cols-2 gap-4">
-                             <label for="modality-online" class="flex items-center justify-center text-center p-4 border border-gray-300 rounded-lg cursor-pointer hover:bg-gray-50 transition has-[:checked]:bg-[#5DBA8B]/10 has-[:checked]:border-[#5DBA8B] has-[:checked]:ring-2 has-[:checked]:ring-[#5DBA8B]">
-                                 <input type="radio" id="modality-online" name="modality" value="Online" checked class="sr-only">
-                                 <span class="text-base font-medium text-[#1A2A4C]">Online</span>
-                             </label>
-                             <label for="modality-presencial" class="flex items-center justify-center text-center p-4 border border-gray-300 rounded-lg cursor-pointer hover:bg-gray-50 transition has-[:checked]:bg-[#4B3F8F]/10 has-[:checked]:border-[#4B3F8F] has-[:checked]:ring-2 has-[:checked]:ring-[#4B3F8F]">
-                                 <input type="radio" id="modality-presencial" name="modality" value="Presencial" class="sr-only">
-                                 <span class="text-base font-medium text-[#1A2A4C]">Presencial</span>
-                             </label>
-                         </div>
-                    </div>
-
-                    <!-- Forma de Pagamento -->
-                    <div>
-                        <label class="block text-sm font-medium text-[#1A2A4C]/90">Forma de Pagamento</label>
-                        <div class="mt-2 grid grid-cols-2 gap-4">
-                            <label class="flex items-center justify-center text-center p-4 border border-gray-300 rounded-lg cursor-pointer hover:bg-gray-50 transition has-[:checked]:bg-blue-50 has-[:checked]:border-blue-400 has-[:checked]:ring-2 has-[:checked]:ring-blue-400">
-                                <input type="radio" name="paymentMethod" value="CREDIT_CARD" checked class="sr-only">
-                                <span class="text-sm font-medium text-[#1A2A4C]">Cartão de Crédito</span>
-                            </label>
-                            <label class="flex items-center justify-center text-center p-4 border border-gray-300 rounded-lg cursor-pointer hover:bg-gray-50 transition has-[:checked]:bg-blue-50 has-[:checked]:border-blue-400 has-[:checked]:ring-2 has-[:checked]:ring-blue-400">
-                                <input type="radio" name="paymentMethod" value="BOLETO" class="sr-only">
-                                <span class="text-sm font-medium text-[#1A2A4C]">Boleto ou PIX</span>
-                            </label>
+                    <!-- Endereço -->
+                    <h3 class="text-lg font-semibold border-b pb-2 pt-4 text-[#1A2A4C]">Endereço</h3>
+                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                        <div class="sm:col-span-1">
+                            <label for="cep" class="block text-sm font-medium text-[#1A2A4C]/90">CEP</label>
+                            <input type="text" id="cep" name="cep" required class="mt-1 block w-full px-4 py-3 bg-gray-50 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-[#4B3F8F] focus:border-transparent transition" placeholder="00000-000">
+                        </div>
+                         <div class="sm:col-span-2 text-xs text-gray-500 pt-8">
+                            Digite seu CEP e aguarde o preenchimento automático.
                         </div>
                     </div>
+                    <div>
+                        <label for="address" class="block text-sm font-medium text-[#1A2A4C]/90">Endereço (Rua, Av.)</label>
+                        <input type="text" id="address" name="address" required class="mt-1 block w-full px-4 py-3 bg-gray-50 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-[#4B3F8F] focus:border-transparent transition">
+                    </div>
+                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                         <div class="sm:col-span-1">
+                            <label for="addressNumber" class="block text-sm font-medium text-[#1A2A4C]/90">Número</label>
+                            <input type="text" id="addressNumber" name="addressNumber" required class="mt-1 block w-full px-4 py-3 bg-gray-50 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-[#4B3F8F] focus:border-transparent transition">
+                        </div>
+                        <div class="sm:col-span-2">
+                            <label for="complement" class="block text-sm font-medium text-[#1A2A4C]/90">Complemento (Opcional)</label>
+                            <input type="text" id="complement" name="complement" class="mt-1 block w-full px-4 py-3 bg-gray-50 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-[#4B3F8F] focus:border-transparent transition" placeholder="Apto, bloco, casa, etc.">
+                        </div>
+                    </div>
+                     <div>
+                        <label for="city" class="block text-sm font-medium text-[#1A2A4C]/90">Cidade - Estado</label>
+                        <input type="text" id="city" name="city" required class="mt-1 block w-full px-4 py-3 bg-gray-50 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-[#4B3F8F] focus:border-transparent transition">
+                    </div>
 
-                    <!-- Parcelas -->
-                    <div id="installments-container">
-                        <label for="installments" class="block text-sm font-medium text-[#1A2A4C]/90">Opções de Pagamento</label>
-                        <select id="installments" name="installments" class="mt-1 block w-full pl-3 pr-10 py-3 text-base bg-gray-50 border-gray-300 focus:outline-none focus:ring-[#4B3F8F] focus:border-[#4B3F8F] sm:text-sm rounded-lg shadow-sm transition"></select>
+                    <!-- Detalhes do Curso -->
+                    <h3 class="text-lg font-semibold border-b pb-2 pt-4 text-[#1A2A4C]">Detalhes da Inscrição</h3>
+                    <div class="space-y-5">
+                        <!-- Modalidade, Forma de Pagamento, Parcelas, etc. -->
+                        <div>
+                             <label class="block text-sm font-medium text-[#1A2A4C]/90">Modalidade do Curso</label>
+                             <div class="mt-2 grid grid-cols-2 gap-4">
+                                 <label for="modality-online" class="flex items-center justify-center text-center p-4 border border-gray-300 rounded-lg cursor-pointer hover:bg-gray-50 transition has-[:checked]:bg-[#5DBA8B]/10 has-[:checked]:border-[#5DBA8B] has-[:checked]:ring-2 has-[:checked]:ring-[#5DBA8B]">
+                                     <input type="radio" id="modality-online" name="modality" value="Online" checked class="sr-only">
+                                     <span class="text-base font-medium text-[#1A2A4C]">Online</span>
+                                 </label>
+                                 <label for="modality-presencial" class="flex items-center justify-center text-center p-4 border border-gray-300 rounded-lg cursor-pointer hover:bg-gray-50 transition has-[:checked]:bg-[#4B3F8F]/10 has-[:checked]:border-[#4B3F8F] has-[:checked]:ring-2 has-[:checked]:ring-[#4B3F8F]">
+                                     <input type="radio" id="modality-presencial" name="modality" value="Presencial" class="sr-only">
+                                     <span class="text-base font-medium text-[#1A2A4C]">Presencial</span>
+                                 </label>
+                             </div>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-[#1A2A4C]/90">Forma de Pagamento</label>
+                            <div class="mt-2 grid grid-cols-2 gap-4">
+                                <label class="flex items-center justify-center text-center p-4 border border-gray-300 rounded-lg cursor-pointer hover:bg-gray-50 transition has-[:checked]:bg-blue-50 has-[:checked]:border-blue-400 has-[:checked]:ring-2 has-[:checked]:ring-blue-400">
+                                    <input type="radio" name="paymentMethod" value="CREDIT_CARD" checked class="sr-only">
+                                    <span class="text-sm font-medium text-[#1A2A4C]">Cartão de Crédito</span>
+                                </label>
+                                <label class="flex items-center justify-center text-center p-4 border border-gray-300 rounded-lg cursor-pointer hover:bg-gray-50 transition has-[:checked]:bg-blue-50 has-[:checked]:border-blue-400 has-[:checked]:ring-2 has-[:checked]:ring-blue-400">
+                                    <input type="radio" name="paymentMethod" value="BOLETO" class="sr-only">
+                                    <span class="text-sm font-medium text-[#1A2A4C]">Boleto ou PIX</span>
+                                </label>
+                            </div>
+                        </div>
+                        <div id="installments-container">
+                            <label for="installments" class="block text-sm font-medium text-[#1A2A4C]/90">Opções de Pagamento</label>
+                            <select id="installments" name="installments" class="mt-1 block w-full pl-3 pr-10 py-3 text-base bg-gray-50 border-gray-300 focus:outline-none focus:ring-[#4B3F8F] focus:border-[#4B3F8F] sm:text-sm rounded-lg shadow-sm transition"></select>
+                        </div>
                     </div>
 
                     <!-- Contrato -->
@@ -113,7 +149,6 @@
                 </div>
             </form>
 
-            <!-- Mensagens de Erro/Sucesso -->
             <div id="message-container" class="mt-4 text-center text-red-600 font-medium"></div>
 
         </main>
@@ -124,51 +159,48 @@
     </div>
 
     <script>
+        // --- CONSTANTES E VARIÁVEIS GLOBAIS ---
         const CONTRACT_VERSION = 'v1.0';
         const CONTRACT_HASH = '88559760E4DAF2CEF94D9F5B7069CBCC9A5196106CD771227DB2500EFFBEDD0E';
-        const digits = s => (s || '').replace(/\D/g, '');
         const form = document.getElementById('enrollment-form');
         const submitButton = document.getElementById('submit-button');
         const buttonText = submitButton.querySelector('.button-text');
         const buttonLoader = submitButton.querySelector('.loader');
         const messageContainer = document.getElementById('message-container');
+        
+        const cepInput = document.getElementById('cep');
+        const addressInput = document.getElementById('address');
+        const cityInput = document.getElementById('city');
+        const addressNumberInput = document.getElementById('addressNumber');
 
         const paymentMethodRadios = document.querySelectorAll('input[name="paymentMethod"]');
         const installmentsSelect = document.getElementById('installments');
         const modalityRadios = document.querySelectorAll('input[name="modality"]');
 
-        // Esta estrutura de preços no frontend deve ser um espelho daquela no backend.
         const coursePrices = {
-            Online: {
-                BOLETO: 800.00,
-                CREDIT_CARD: { 1: 830.00, 2: 830.97, 3: 831.48, 4: 831.99, 5: 832.49, 6: 832.99 }
-            },
-            Presencial: {
-                BOLETO: 900.00,
-                CREDIT_CARD: { 1: 930.00, 2: 934.59, 3: 935.09, 4: 935.60, 5: 936.11, 6: 936.61 }
-            }
+            Online: { BOLETO: 800.00, CREDIT_CARD: { 1: 830.00, 2: 830.97, 3: 831.48, 4: 831.99, 5: 832.49, 6: 832.99 }},
+            Presencial: { BOLETO: 900.00, CREDIT_CARD: { 1: 930.00, 2: 934.59, 3: 935.09, 4: 935.60, 5: 936.11, 6: 936.61 }}
         };
-
-        function formatCurrency(value) {
-            return `R$ ${value.toFixed(2).replace('.', ',')}`;
-        }
-
+        
+        // --- FUNÇÕES AUXILIARES ---
+        const digits = s => (s || '').replace(/\D/g, '');
+        const formatCurrency = value => `R$ ${value.toFixed(2).replace('.', ',')}`;
+        
+        // --- LÓGICA DE ATUALIZAÇÃO DA UI ---
         function updateInstallmentOptions() {
             const selectedMethod = document.querySelector('input[name="paymentMethod"]:checked').value;
             const selectedModality = document.querySelector('input[name="modality"]:checked').value;
             const pricesForModality = coursePrices[selectedModality];
             
-            installmentsSelect.innerHTML = ''; // Limpa as opções atuais
+            installmentsSelect.innerHTML = ''; 
 
             if (selectedMethod === 'CREDIT_CARD') {
                 const creditCardPrices = pricesForModality.CREDIT_CARD;
                 for (const numInstallments in creditCardPrices) {
                     const option = document.createElement('option');
                     option.value = numInstallments;
-                    
                     const totalPrice = creditCardPrices[numInstallments];
                     const totalFormatted = formatCurrency(totalPrice);
-
                     if (numInstallments == 1) {
                         option.textContent = `1x de ${totalFormatted} (à vista)`;
                     } else {
@@ -178,17 +210,52 @@
                     installmentsSelect.appendChild(option);
                 }
             } else {
-                // Para Boleto ou PIX, o método é BOLETO
                 const option = document.createElement('option');
                 option.value = 1;
-                const totalPrice = pricesForModality[selectedMethod]; 
+                const totalPrice = pricesForModality.BOLETO; 
                 option.textContent = `1x de ${formatCurrency(totalPrice)} (à vista)`;
                 installmentsSelect.appendChild(option);
             }
         }
 
+        async function fetchAddress(cep) {
+            addressInput.value = 'Buscando...';
+            cityInput.value = 'Buscando...';
+            addressInput.classList.add('address-loading');
+            cityInput.classList.add('address-loading');
+
+            try {
+                const response = await fetch(`https://viacep.com.br/ws/${cep}/json/`);
+                const data = await response.json();
+
+                if (data.erro) {
+                    throw new Error('CEP não encontrado.');
+                }
+
+                addressInput.value = `${data.logradouro}, ${data.bairro}`;
+                cityInput.value = `${data.localidade} - ${data.uf}`;
+                addressNumberInput.focus(); // Move o foco para o campo de número
+
+            } catch (error) {
+                addressInput.value = '';
+                cityInput.value = '';
+                messageContainer.textContent = error.message;
+            } finally {
+                addressInput.classList.remove('address-loading');
+                cityInput.classList.remove('address-loading');
+            }
+        }
+
+        // --- EVENT LISTENERS ---
         paymentMethodRadios.forEach(radio => radio.addEventListener('change', updateInstallmentOptions));
         modalityRadios.forEach(radio => radio.addEventListener('change', updateInstallmentOptions));
+        
+        cepInput.addEventListener('blur', (event) => {
+            const cep = digits(event.target.value);
+            if (cep.length === 8) {
+                fetchAddress(cep);
+            }
+        });
 
         form.addEventListener('submit', async (event) => {
             event.preventDefault();
@@ -204,6 +271,11 @@
                 email: formData.get('email'),
                 cpf: digits(formData.get('cpf')),
                 phone: digits(formData.get('phone')),
+                cep: digits(formData.get('cep')),
+                address: formData.get('address'),
+                addressNumber: formData.get('addressNumber'),
+                complement: formData.get('complement'),
+                city: formData.get('city'),
                 modality: formData.get('modality'),
                 paymentMethod: formData.get('paymentMethod'),
                 installments: formData.get('installments'),
@@ -234,7 +306,7 @@
             }
         });
 
-        // Inicializa o estado da UI
+        // --- INICIALIZAÇÃO ---
         updateInstallmentOptions();
     </script>
 </body>
