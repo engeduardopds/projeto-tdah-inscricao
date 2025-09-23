@@ -79,7 +79,7 @@
                             <input type="text" id="complement" name="complement" class="mt-1 block w-full px-4 py-3 bg-gray-50 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-[#4B3F8F] focus:border-transparent transition" placeholder="Apto, bloco, casa, etc.">
                         </div>
                     </div>
-                    <div>
+                     <div>
                         <label for="bairro" class="block text-sm font-medium text-[#1A2A4C]/90">Bairro</label>
                         <input type="text" id="bairro" name="bairro" required class="mt-1 block w-full px-4 py-3 bg-gray-50 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-[#4B3F8F] focus:border-transparent transition">
                     </div>
@@ -118,6 +118,19 @@
                                 </label>
                             </div>
                         </div>
+
+                        <!-- Cupom de Desconto -->
+                        <div>
+                            <label for="coupon" class="block text-sm font-medium text-[#1A2A4C]/90">Cupom de Desconto</label>
+                            <div class="mt-1 flex rounded-lg shadow-sm">
+                                <input type="text" name="coupon" id="coupon" class="flex-1 block w-full min-w-0 rounded-none rounded-l-lg border-gray-300 focus:ring-[#4B3F8F] focus:border-[#4B3F8F] sm:text-sm px-4 py-3 bg-gray-50" placeholder="Ex: ABC12">
+                                <button type="button" id="apply-coupon-btn" class="inline-flex items-center px-4 py-2 border border-l-0 border-gray-300 rounded-r-lg bg-gray-50 text-sm font-medium text-gray-700 hover:bg-gray-100 focus:outline-none focus:ring-1 focus:ring-[#4B3F8F] focus:border-[#4B3F8F]">
+                                    Aplicar
+                                </button>
+                            </div>
+                            <p id="coupon-message" class="mt-2 text-sm text-green-600"></p>
+                        </div>
+
 
                         <div id="installments-container">
                             <label for="installments" class="block text-sm font-medium text-[#1A2A4C]/90">Opções de Pagamento</label>
@@ -193,10 +206,18 @@
         const paymentMethodRadios = document.querySelectorAll('input[name="paymentMethod"]');
         const installmentsSelect = document.getElementById('installments');
         const modalityRadios = document.querySelectorAll('input[name="modality"]');
+        
+        const couponInput = document.getElementById('coupon');
+        const applyCouponBtn = document.getElementById('apply-coupon-btn');
+        const couponMessage = document.getElementById('coupon-message');
 
         const coursePrices = {
             Online: { BOLETO: 800.00, CREDIT_CARD: { 1: 830.00, 2: 830.97, 3: 831.48, 4: 831.99, 5: 832.49, 6: 832.99 }},
             Presencial: { BOLETO: 900.00, CREDIT_CARD: { 1: 930.00, 2: 934.59, 3: 935.09, 4: 935.60, 5: 936.11, 6: 936.61 }}
+        };
+
+        const validCoupons = {
+            'ZAP15': 0.15 // 15% de desconto
         };
         
         // --- FUNÇÕES AUXILIARES ---
@@ -209,6 +230,10 @@
             const selectedModality = document.querySelector('input[name="modality"]:checked').value;
             const pricesForModality = coursePrices[selectedModality];
             
+            const couponCode = couponInput.value.trim().toUpperCase();
+            const discount = validCoupons[couponCode] || 0;
+            const isCouponApplied = discount > 0 && couponMessage.textContent.includes('aplicado');
+            
             installmentsSelect.innerHTML = ''; 
 
             if (selectedMethod === 'CREDIT_CARD') {
@@ -216,7 +241,12 @@
                 for (const numInstallments in creditCardPrices) {
                     const option = document.createElement('option');
                     option.value = numInstallments;
-                    const totalPrice = creditCardPrices[numInstallments];
+                    
+                    let totalPrice = creditCardPrices[numInstallments];
+                    if (isCouponApplied) {
+                        totalPrice *= (1 - discount);
+                    }
+
                     const totalFormatted = formatCurrency(totalPrice);
                     if (numInstallments == 1) {
                         option.textContent = `1x de ${totalFormatted} (à vista)`;
@@ -226,10 +256,15 @@
                     }
                     installmentsSelect.appendChild(option);
                 }
-            } else {
+            } else { // BOLETO ou PIX
                 const option = document.createElement('option');
                 option.value = 1;
-                const totalPrice = pricesForModality.BOLETO; 
+                
+                let totalPrice = pricesForModality.BOLETO; 
+                if (isCouponApplied) {
+                    totalPrice *= (1 - discount);
+                }
+
                 option.textContent = `1x de ${formatCurrency(totalPrice)} (à vista)`;
                 installmentsSelect.appendChild(option);
             }
@@ -279,6 +314,20 @@
             }
         });
 
+        applyCouponBtn.addEventListener('click', () => {
+            const couponCode = couponInput.value.trim().toUpperCase();
+            if (validCoupons[couponCode]) {
+                couponMessage.textContent = 'Desconto de 15% aplicado!';
+                couponMessage.className = 'mt-2 text-sm text-green-600';
+            } else {
+                couponInput.value = ''; // Limpa o campo se for inválido
+                couponMessage.textContent = 'Cupom inválido ou expirado.';
+                couponMessage.className = 'mt-2 text-sm text-red-600';
+            }
+            updateInstallmentOptions();
+        });
+
+
         form.addEventListener('submit', async (event) => {
             event.preventDefault();
             messageContainer.textContent = '';
@@ -304,6 +353,7 @@
                 installments: formData.get('installments'),
                 objective: formData.get('objective'),
                 source: formData.get('source'),
+                coupon: couponInput.value.trim().toUpperCase(), // Enviar o cupom
                 contract: formData.get('contract') === 'on',
                 contractVersion: CONTRACT_VERSION,
                 contractHash: CONTRACT_HASH
