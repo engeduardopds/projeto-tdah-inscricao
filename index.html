@@ -31,6 +31,7 @@
 
     <div class="w-full max-w-lg mx-auto">
 
+        <!-- Header -->
         <header class="text-center mb-8">
             <h1 class="text-3xl md:text-4xl font-bold text-[#1A2A4C]">Fazendo as Pazes com o seu TDAH</h1>
             <p class="mt-2 text-lg text-[#1A2A4C]/80">Preencha os dados abaixo para garantir sua vaga.</p>
@@ -51,7 +52,7 @@
                     </div>
                     <div>
                         <label for="cpf" class="block text-sm font-medium text-[#1A2A4C]/90">CPF</label>
-                        <input type="text" id="cpf" name="cpf" required class="mt-1 block w-full px-4 py-3 bg-gray-50 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-[#4B3F8F] focus:border-transparent transition" placeholder="Apenas números" inputmode="numeric">
+                        <input type="text" id="cpf" name="cpf" required inputmode="numeric" class="mt-1 block w-full px-4 py-3 bg-gray-50 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-[#4B3F8F] focus:border-transparent transition" placeholder="Apenas números">
                     </div>
                     <div>
                         <label for="phone" class="block text-sm font-medium text-[#1A2A4C]/90">Celular (com DDD)</label>
@@ -62,16 +63,16 @@
                     <h3 class="text-lg font-semibold border-b pb-2 pt-4 text-[#1A2A4C]">Endereço</h3>
                     <div>
                         <label for="cep" class="block text-sm font-medium text-[#1A2A4C]/90">CEP</label>
-                        <input type="text" id="cep" name="cep" required class="mt-1 block w-full px-4 py-3 bg-gray-50 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-[#4B3F8F] focus:border-transparent transition" placeholder="Apenas números" inputmode="numeric">
+                        <input type="text" id="cep" name="cep" required inputmode="numeric" class="mt-1 block w-full px-4 py-3 bg-gray-50 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-[#4B3F8F] focus:border-transparent transition" placeholder="Apenas números">
                     </div>
                     <div>
                         <label for="address" class="block text-sm font-medium text-[#1A2A4C]/90">Endereço</label>
                         <input type="text" id="address" name="address" required class="mt-1 block w-full px-4 py-3 bg-gray-50 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-[#4B3F8F] focus:border-transparent transition">
                     </div>
                     <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                         <div class="sm:col-span-1">
+                        <div class="sm:col-span-1">
                             <label for="addressNumber" class="block text-sm font-medium text-[#1A2A4C]/90">Número</label>
-                            <input type="text" id="addressNumber" name="addressNumber" required class="mt-1 block w-full px-4 py-3 bg-gray-50 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-[#4B3F8F] focus:border-transparent transition" placeholder="" inputmode="numeric">
+                            <input type="text" id="addressNumber" name="addressNumber" required inputmode="numeric" class="mt-1 block w-full px-4 py-3 bg-gray-50 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-[#4B3F8F] focus:border-transparent transition" placeholder="">
                         </div>
                         <div class="sm:col-span-2">
                             <label for="complement" class="block text-sm font-medium text-[#1A2A4C]/90">Complemento (Opcional)</label>
@@ -82,7 +83,7 @@
                         <label for="bairro" class="block text-sm font-medium text-[#1A2A4C]/90">Bairro</label>
                         <input type="text" id="bairro" name="bairro" required class="mt-1 block w-full px-4 py-3 bg-gray-50 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-[#4B3F8F] focus:border-transparent transition">
                     </div>
-                     <div>
+                    <div>
                         <label for="city" class="block text-sm font-medium text-[#1A2A4C]/90">Cidade - Estado</label>
                         <input type="text" id="city" name="city" required class="mt-1 block w-full px-4 py-3 bg-gray-50 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-[#4B3F8F] focus:border-transparent transition">
                     </div>
@@ -91,24 +92,25 @@
                     <h3 class="text-lg font-semibold border-b pb-2 pt-4 text-[#1A2A4C]">Detalhes da Inscrição</h3>
                     <div class="space-y-5">
                         <div>
-                             <label class="block text-sm font-medium text-[#1A2A4C]/90">Modalidade do Curso</label>
-                             <div class="mt-2 grid grid-cols-2 gap-4">
-                                 <label for="modality-online" class="flex items-center justify-center text-center p-4 border border-gray-300 rounded-lg cursor-pointer hover:bg-gray-50 transition has-[:checked]:bg-[#5DBA8B]/10 has-[:checked]:border-[#5DBA8B] has-[:checked]:ring-2 has-[:checked]:ring-[#5DBA8B]">
-                                     <input type="radio" id="modality-online" name="modality" value="Online" checked class="sr-only">
-                                     <span class="text-base font-medium text-[#1A2A4C]">Online</span>
-                                 </label>
-                                 <label for="modality-presencial" class="flex items-center justify-center text-center p-4 border border-gray-300 rounded-lg cursor-pointer hover:bg-gray-50 transition has-[:checked]:bg-[#4B3F8F]/10 has-[:checked]:border-[#4B3F8F] has-[:checked]:ring-2 has-[:checked]:ring-[#4B3F8F]">
-                                     <input type="radio" id="modality-presencial" name="modality" value="Presencial" class="sr-only">
-                                     <span class="text-base font-medium text-[#1A2A4C]">Presencial</span>
-                                 </label>
-                             </div>
+                            <label class="block text-sm font-medium text-[#1A2A4C]/90">Modalidade do Curso</label>
+                            <div class="mt-2 grid grid-cols-2 gap-4">
+                                <label for="modality-online" class="flex items-center justify-center text-center p-4 border border-gray-300 rounded-lg cursor-pointer hover:bg-gray-50 transition has-[:checked]:bg-[#5DBA8B]/10 has-[:checked]:border-[#5DBA8B] has-[:checked]:ring-2 has-[:checked]:ring-[#5DBA8B]">
+                                    <input type="radio" id="modality-online" name="modality" value="Online" checked class="sr-only">
+                                    <span class="text-base font-medium text-[#1A2A4C]">Online</span>
+                                </label>
+                                <label for="modality-presencial" class="flex items-center justify-center text-center p-4 border border-gray-300 rounded-lg cursor-pointer hover:bg-gray-50 transition has-[:checked]:bg-[#4B3F8F]/10 has-[:checked]:border-[#4B3F8F] has-[:checked]:ring-2 has-[:checked]:ring-[#4B3F8F]">
+                                    <input type="radio" id="modality-presencial" name="modality" value="Presencial" class="sr-only">
+                                    <span class="text-base font-medium text-[#1A2A4C]">Presencial</span>
+                                </label>
+                            </div>
                         </div>
+
                         <div>
                             <label class="block text-sm font-medium text-[#1A2A4C]/90">Forma de Pagamento</label>
                             <div class="mt-2 grid grid-cols-2 gap-4">
                                 <label class="flex items-center justify-center text-center p-4 border border-gray-300 rounded-lg cursor-pointer hover:bg-gray-50 transition has-[:checked]:bg-blue-50 has-[:checked]:border-blue-400 has-[:checked]:ring-2 has-[:checked]:ring-blue-400">
                                     <input type="radio" name="paymentMethod" value="CREDIT_CARD" checked class="sr-only">
-                                    <span class="text-sm font-medium text-[#1A2A4C]">Cartão de Crédito</span>
+                                    <span class="text-sm font-medium text-[#1A2A4C]">Cartão de Crédito ou Débito</span>
                                 </label>
                                 <label class="flex items-center justify-center text-center p-4 border border-gray-300 rounded-lg cursor-pointer hover:bg-gray-50 transition has-[:checked]:bg-blue-50 has-[:checked]:border-blue-400 has-[:checked]:ring-2 has-[:checked]:ring-blue-400">
                                     <input type="radio" name="paymentMethod" value="BOLETO" class="sr-only">
@@ -116,32 +118,29 @@
                                 </label>
                             </div>
                         </div>
+
                         <div id="installments-container">
                             <label for="installments" class="block text-sm font-medium text-[#1A2A4C]/90">Opções de Pagamento</label>
                             <select id="installments" name="installments" class="mt-1 block w-full pl-3 pr-10 py-3 text-base bg-gray-50 border-gray-300 focus:outline-none focus:ring-[#4B3F8F] focus:border-[#4B3F8F] sm:text-sm rounded-lg shadow-sm transition"></select>
                         </div>
-                    </div>
-
-                    <!-- Novas Perguntas -->
-                     <h3 class="text-lg font-semibold border-b pb-2 pt-4 text-[#1A2A4C]">Sobre Você</h3>
-                     <div class="space-y-5">
-                         <div>
-                             <label for="objective" class="block text-sm font-medium text-[#1A2A4C]/90">Qual o seu principal objetivo com o curso?</label>
+                        
+                        <div>
+                            <label for="objective" class="block text-sm font-medium text-[#1A2A4C]/90">Qual o seu principal objetivo com o curso?</label>
                              <select id="objective" name="objective" required class="mt-1 block w-full pl-3 pr-10 py-3 text-base bg-gray-50 border-gray-300 focus:outline-none focus:ring-[#4B3F8F] focus:border-[#4B3F8F] sm:text-sm rounded-lg shadow-sm transition">
-                                 <option>Sou profissional da saúde e busco aprimoramento</option>
-                                 <option>Tenho TDAH e busco autoconhecimento</option>
-                                 <option>Convivo com alguém com TDAH e busco compreensão</option>
-                             </select>
-                         </div>
-                         <div>
-                             <label for="source" class="block text-sm font-medium text-[#1A2A4C]/90">Como ficou sabendo do curso?</label>
-                             <select id="source" name="source" required class="mt-1 block w-full pl-3 pr-10 py-3 text-base bg-gray-50 border-gray-300 focus:outline-none focus:ring-[#4B3F8F] focus:border-[#4B3F8F] sm:text-sm rounded-lg shadow-sm transition">
-                                 <option>Instagram</option>
-                                 <option>Indicação de amigos</option>
-                             </select>
-                         </div>
-                     </div>
+                                <option value="Profissional da saúde">Sou profissional da saúde buscando aprimoramento</option>
+                                <option value="Tenho TDAH">Tenho TDAH e quero aprender a lidar com questões pessoais</option>
+                                <option value="Convivo com TDAH">Convivo com alguém que tem TDAH</option>
+                            </select>
+                        </div>
 
+                        <div>
+                            <label for="source" class="block text-sm font-medium text-[#1A2A4C]/90">Como ficou sabendo do curso?</label>
+                            <select id="source" name="source" required class="mt-1 block w-full pl-3 pr-10 py-3 text-base bg-gray-50 border-gray-300 focus:outline-none focus:ring-[#4B3F8F] focus:border-[#4B3F8F] sm:text-sm rounded-lg shadow-sm transition">
+                                <option value="Instagram">Instagram</option>
+                                <option value="Indicação de amigos">Indicação de amigos</option>
+                            </select>
+                        </div>
+                    </div>
 
                     <!-- Contrato -->
                     <div class="flex items-start pt-2">
@@ -223,7 +222,7 @@
                         option.textContent = `1x de ${totalFormatted} (à vista)`;
                     } else {
                         const installmentValue = formatCurrency(totalPrice / numInstallments);
-                        option.textContent = `${numInstallments}x de ${installmentValue} (Total: ${totalFormatted})`;
+                        option.textContent = `${numInstallments}x de ${installmentValue} (Total: ${totalFormatted}) (Apenas Cartão de Crédito)`;
                     }
                     installmentsSelect.appendChild(option);
                 }
@@ -323,7 +322,7 @@
                 if (!res.ok) throw new Error(result.error || txt || 'Ocorreu um erro. Tente novamente.');
                 
                 window.location.href = result.paymentUrl;
-                                
+                                        
             } catch (error) {
                 messageContainer.textContent = error.message;
                 submitButton.disabled = false;
