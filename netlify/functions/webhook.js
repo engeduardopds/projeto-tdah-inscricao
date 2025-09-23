@@ -11,17 +11,12 @@ const err = (code, msg) => ({ statusCode: code, body: msg });
 // Função para enviar o e-mail de boas-vindas
 async function sendWelcomeEmail(customerData) {
     try {
-        const auth = {
-            type: 'OAuth2',
-            user: process.env.GMAIL_ADDRESS,
-            clientId: process.env.GMAIL_CLIENT_ID,
-            clientSecret: process.env.GMAIL_CLIENT_SECRET,
-            refreshToken: process.env.GMAIL_REFRESH_TOKEN,
-        };
-
         const transporter = nodemailer.createTransport({
             service: 'gmail',
-            auth: auth,
+            auth: {
+                user: process.env.GMAIL_ADDRESS,
+                pass: process.env.GMAIL_APP_PASSWORD, 
+            },
         });
 
         const mailOptions = {
@@ -47,8 +42,9 @@ async function sendWelcomeEmail(customerData) {
     }
 }
 
+
 // Função para adicionar os dados na planilha
-async function appendToSheet(customerData, paymentData, totalInstallments, objective, source) {
+async function appendToSheet(customerData, paymentData, extraData) {
     try {
         const auth = new GoogleAuth({
             credentials: {
@@ -69,9 +65,10 @@ async function appendToSheet(customerData, paymentData, totalInstallments, objec
             paymentData.status,
             paymentData.id,
             paymentData.billingType === 'CREDIT_CARD' ? 'Cartão de Crédito' : 'Boleto ou PIX',
-            paymentData.billingType === 'CREDIT_CARD' ? totalInstallments : '-',
-            objective,
-            source,
+            extraData.totalInstallments,
+            extraData.objective,
+            extraData.source,
+            extraData.coupon
         ];
 
         await sheets.spreadsheets.values.append({
@@ -92,7 +89,6 @@ async function appendToSheet(customerData, paymentData, totalInstallments, objec
 exports.handler = async (event) => {
     if (event.httpMethod !== "POST") return err(405, "Method Not Allowed");
 
-    // Validação do Token de Segurança
     const expectedToken = process.env.ASAAS_WEBHOOK_TOKEN;
     const receivedToken = event.headers['asaas-access-token'];
     if (!expectedToken || receivedToken !== expectedToken) {
@@ -104,53 +100,36 @@ exports.handler = async (event) => {
         const paymentData = notification.payment || {};
         const eventType = notification.event;
 
-        // Validação do evento
         if (eventType !== 'PAYMENT_CONFIRMED' && eventType !== 'PAYMENT_RECEIVED') {
             return ok({ received: true, ignored: true, reason: 'Event type not processed' });
         }
-
-        // Ignorar parcelas subsequentes
+        
         if (paymentData.installmentNumber && paymentData.installmentNumber > 1) {
-            console.log(`Ignorando parcela ${paymentData.installmentNumber}. Ação já executada.`);
+            console.log(`Ignorando parcela ${paymentData.installmentNumber}.`);
             return ok({ received: true, ignored: true, reason: 'Subsequent installment' });
         }
         
-        // Obter os dados completos do cliente
-        const customerResponse = await axios.get(`https://sandbox.asaas.com/api/v3/customers/${paymentData.customer}`, {
-            headers: { 'access_token': process.env.ASAAS_API_KEY }
-        });
-        const customerData = customerResponse.data;
+        const asaasApiUrl = `https://sandbox.asaas.com/api/v3`;
+        const headers = { 'access_token': process.env.ASAAS_API_KEY };
 
-        let totalInstallments = 1; 
-        if (paymentData.installment) {
-            try {
-                const installmentResponse = await axios.get(`https://sandbox.asaas.com/api/v3/installments/${paymentData.installment}`, {
-                    headers: { 'access_token': process.env.ASAAS_API_KEY }
-                });
-                if (installmentResponse.data && installmentResponse.data.installmentCount) {
-                    totalInstallments = installmentResponse.data.installmentCount;
-                }
-            } catch (e) {
-                console.error("Erro ao buscar detalhes do parcelamento:", e.message);
-            }
-        }
+        const [customerResponse, paymentDetailsResponse] = await Promise.all([
+            axios.get(`${asaasApiUrl}/customers/${paymentData.customer}`, { headers }),
+            axios.get(`${asaasApiUrl}/payments/${paymentData.id}`, { headers })
+        ]);
         
-        // Obter os dados extras da externalReference
-        let objective = 'N/A';
-        let source = 'N/A';
-        if (paymentData.externalReference) {
-            try {
-                const extraData = JSON.parse(paymentData.externalReference);
-                objective = extraData.objective || 'N/A';
-                source = extraData.source || 'N/A';
-            } catch (e) {
-                console.error("Erro ao parsear externalReference:", paymentData.externalReference);
-            }
-        }
+        const customerData = customerResponse.data;
+        const fullPaymentData = paymentDetailsResponse.data;
 
-        // Executar as duas ações
+        const externalReference = JSON.parse(fullPaymentData.externalReference || '{}');
+        const extraData = {
+            totalInstallments: fullPaymentData.installment ? fullPaymentData.installment.installmentCount : 1,
+            objective: externalReference.objective || '-',
+            source: externalReference.source || '-',
+            coupon: externalReference.coupon || '-'
+        };
+
         await Promise.all([
-            appendToSheet(customerData, paymentData, totalInstallments, objective, source),
+            appendToSheet(customerData, fullPaymentData, extraData),
             sendWelcomeEmail(customerData)
         ]);
 
