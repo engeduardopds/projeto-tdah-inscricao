@@ -89,10 +89,16 @@ exports.handler = async (event) => {
 
             // Passo 2: Usar o ID do cliente no payload de pagamento
             payload.customer = customerId;
-            payload.installmentCount = installments;
+            
+            // --- CORREÇÃO APLICADA AQUI ---
+            // Adicionar detalhes do parcelamento APENAS se for mais de 1 parcela, conforme a documentação do Asaas.
             if (installments > 1) {
+                payload.installmentCount = installments;
                 payload.installmentValue = parseFloat((coursePrice / installments).toFixed(2));
             }
+            // Se for 1 parcela, não enviamos os campos de parcelamento. O Asaas tratará como "à vista".
+            // ------------------------------------
+
         } else {
             // Para Boleto, podemos enviar os dados do cliente diretamente
             payload.customer = { name, email, cpfCnpj: cpf, mobilePhone: phone, postalCode: cep, address, addressNumber, complement, province: bairro };
