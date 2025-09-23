@@ -1,11 +1,11 @@
 // Importa a biblioteca axios para fazer requisições HTTP
 const axios = require('axios');
 
-// --- ESTRUTURA DE PREÇOS ATUALIZADA ---
-// UNDEFINED permite que o cliente escolha entre Boleto e PIX na página do Asaas.
+// --- ESTRUTURA DE PREÇOS OTIMIZADA ---
+// BOLETO será usado para a opção "Boleto ou PIX"
 const COURSE_PRICES = {
     Online: {
-        UNDEFINED: 800.00, // Preço para Boleto ou PIX
+        BOLETO: 800.00,
         CREDIT_CARD: {
             1: 830.00,
             2: 830.97,
@@ -16,7 +16,7 @@ const COURSE_PRICES = {
         }
     },
     Presencial: {
-        UNDEFINED: 900.00, // Preço para Boleto ou PIX
+        BOLETO: 900.00,
         CREDIT_CARD: {
             1: 930.00,
             2: 934.59,
@@ -61,8 +61,7 @@ exports.handler = async (event) => {
         if (paymentMethod === 'CREDIT_CARD') {
             coursePrice = pricesForModality.CREDIT_CARD[installmentCount];
         } else {
-            // Para "Boleto ou PIX", o valor de paymentMethod será "UNDEFINED"
-            coursePrice = pricesForModality[paymentMethod]; 
+            coursePrice = pricesForModality[paymentMethod]; // Irá buscar o preço de BOLETO
         }
         
         if (!coursePrice) {
@@ -87,7 +86,7 @@ exports.handler = async (event) => {
 
         const payload = {
             customer: { name, email, cpfCnpj: cpf, mobilePhone: phone },
-            billingType: paymentMethod,
+            billingType: paymentMethod, // Agora será BOLETO ou CREDIT_CARD
             value: coursePrice,
             dueDate: dueDate,
             description: `Inscrição no curso "Fazendo as Pazes com o seu TDAH" - Modalidade ${modality}`,
