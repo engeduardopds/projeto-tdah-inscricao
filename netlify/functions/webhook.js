@@ -8,7 +8,7 @@ const nodemailer = require('nodemailer');
 const ok = (obj) => ({ statusCode: 200, headers: { "Content-Type": "application/json" }, body: JSON.stringify(obj || { ok: true }) });
 const err = (code, msg) => ({ statusCode: code, body: msg });
 
-// Função para enviar o e-mail de boas-vindas com Senha de App
+// Função para enviar o e-mail de boas-vindas
 async function sendWelcomeEmail(customerData) {
     try {
         const transporter = nodemailer.createTransport({
@@ -56,6 +56,7 @@ async function appendToSheet(customerData, paymentData, installmentsCount, exter
 
         const sheets = google.sheets({ version: 'v4', auth });
         
+        // --- LEITURA DOS DADOS EXTRAS, INCLUINDO O IP ---
         const refData = JSON.parse(externalReference || '{}');
 
         const newRow = [
@@ -70,7 +71,8 @@ async function appendToSheet(customerData, paymentData, installmentsCount, exter
             installmentsCount > 1 ? installmentsCount : '-',
             refData.objective || '',
             refData.source || '',
-            refData.coupon || ''
+            refData.coupon || '',
+            refData.clientIp || '' // Adiciona o IP na nova coluna
         ];
 
         await sheets.spreadsheets.values.append({
@@ -111,7 +113,6 @@ exports.handler = async (event) => {
         }
         
         let totalInstallments = 1;
-        // Se a notificação for de uma parcela, buscamos o total de parcelas da venda
         if (paymentData.installment) {
             const installmentDetails = await axios.get(`https://sandbox.asaas.com/api/v3/installments/${paymentData.installment}`, {
                 headers: { 'access_token': process.env.ASAAS_API_KEY }
