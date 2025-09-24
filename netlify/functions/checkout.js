@@ -72,9 +72,8 @@ exports.handler = async (event) => {
         const ASAAS_API_KEY = process.env.ASAAS_API_KEY;
         if (!ASAAS_API_KEY) throw new Error("Chave da API do Asaas não configurada.");
         
-        // --- ALTERAÇÃO PARA PRODUÇÃO ---
+        // Retornado para o ambiente de Sandbox para testes. Lembre-se de mudar para produção!
         const asaasApiUrl = 'https://sandbox.asaas.com/api/v3';
-        // -----------------------------
 
         const dueDate = new Date(new Date().setDate(new Date().getDate() + 5)).toISOString().split('T')[0];
 
@@ -105,21 +104,19 @@ exports.handler = async (event) => {
             const customerPayload = { name, email, cpfCnpj: cpf, mobilePhone: phone, postalCode: cep, address, addressNumber, complement, province: bairro };
             
             let customerId;
-            try {
-                 // Tenta criar o cliente
+
+            // Etapa 1: Procurar pelo cliente existente através do CPF
+            const searchResponse = await axios.get(`${asaasApiUrl}/customers?cpfCnpj=${cpf}`, { headers: { 'access_token': ASAAS_API_KEY }});
+
+            if (searchResponse.data.data.length > 0) {
+                // Etapa 2: Cliente encontrado, usar o seu ID
+                customerId = searchResponse.data.data[0].id;
+            } else {
+                // Etapa 3: Cliente não encontrado, criar um novo
                 const customerResponse = await axios.post(`${asaasApiUrl}/customers`, customerPayload, { headers: { 'access_token': ASAAS_API_KEY }});
                 customerId = customerResponse.data.id;
-            } catch (customerError) {
-                // Se o cliente já existe (identificado pelo CPF), o Asaas devolve um erro.
-                // Podemos então procurar pelo cliente para obter o seu ID.
-                if (customerError.response && customerError.response.data.errors[0].code === 'customer_already_exists') {
-                    const searchResponse = await axios.get(`${asaasApiUrl}/customers?cpfCnpj=${cpf}`, { headers: { 'access_token': ASAAS_API_KEY }});
-                    customerId = searchResponse.data.data[0].id;
-                } else {
-                    // Se for outro erro, propaga-o.
-                    throw customerError;
-                }
             }
+
             payload.customer = customerId;
             
             if (installments > 1) {
