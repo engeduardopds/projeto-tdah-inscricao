@@ -19,7 +19,7 @@ const validCoupons = {
 };
 
 const ACCEPTED_CONTRACT_VERSION = 'v1.0';
-const ACCEPTED_CONTRACT_HASH = '88559760E4DAF2CEF94D9F5B7069CBCC9A5196106CD771227DB2500EFFBEDD0E';
+const ACCEPTED_CONTRACT_HASH = 'A938406CB7990B387324C1FCD48578CDA7AFBD3C6F4FD7D5C55844792E030501';
 
 
 exports.handler = async (event) => {
@@ -158,4 +158,5 @@ exports.handler = async (event) => {
         };
     }
 };
+
 
