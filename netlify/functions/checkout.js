@@ -1,15 +1,15 @@
 // Importa a biblioteca axios para fazer requisições HTTP
 const axios = require('axios');
 
-// Estrutura de preços detalhada
+// Estrutura de preços detalhada - Limite de 5 parcelas
 const coursePrices = {
     Online: { 
         BOLETO: 800.00, 
-        CREDIT_CARD: { 1: 830.00, 2: 830.97, 3: 831.48, 4: 831.99, 5: 832.49, 6: 832.99 }
+        CREDIT_CARD: { 1: 830.00, 2: 830.97, 3: 831.48, 4: 831.99, 5: 832.49 }
     },
     Presencial: { 
         BOLETO: 900.00, 
-        CREDIT_CARD: { 1: 930.00, 2: 934.59, 3: 935.09, 4: 935.60, 5: 936.11, 6: 936.61 }
+        CREDIT_CARD: { 1: 930.00, 2: 934.59, 3: 935.09, 4: 935.60, 5: 936.11 }
     }
 };
 
@@ -76,8 +76,7 @@ exports.handler = async (event) => {
         if (!ASAAS_API_KEY) throw new Error("Chave da API do Asaas não configurada.");
         const asaasApiUrl = 'https://sandbox.asaas.com/api/v3';
         const dueDate = new Date(new Date().setDate(new Date().getDate() + 5)).toISOString().split('T')[0];
-
-        // --- COMPACTAÇÃO DOS DADOS PARA A EXTERNALREFERENCE ---
+        
         const objectiveMap = { "Profissional da saúde": "prof", "Tenho TDAH": "pessoal", "Convivo com TDAH": "convivo" };
         const sourceMap = { "Instagram": "insta", "Indicação de amigos": "amigos" };
 
@@ -87,7 +86,6 @@ exports.handler = async (event) => {
             c: coupon.toUpperCase() || '',
             ip: clientIp,
         };
-        // --------------------------------------------------------
 
         const payload = {
             billingType,
