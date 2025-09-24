@@ -119,13 +119,19 @@ exports.handler = async (event) => {
     } catch (error) {
         console.error('Erro ao criar checkout:', error.response ? error.response.data : error.message);
         
-        // --- NOVA LÓGICA DE TRATAMENTO DE ERRO ---
+        // --- LÓGICA DE TRATAMENTO DE ERRO MELHORADA ---
         if (error.response && error.response.data && error.response.data.errors) {
-            const asaasError = error.response.data.errors[0].description;
-            if (asaasError.includes('CPF') || asaasError.includes('CNPJ')) {
+            const asaasError = error.response.data.errors[0].description.toLowerCase(); // Converte para minúsculas para facilitar a correspondência
+
+            if (asaasError.includes('cpf') || asaasError.includes('cnpj')) {
                 return {
                     statusCode: 400, 
-                    body: JSON.stringify({ error: 'CPF inválido. Por favor, verifique o número digitado.' }),
+                    body: JSON.stringify({ error: 'CPF inválido. Acontece! Por favor, verifique o número. Nosso curso pode ajudar com esses pequenos deslizes.' }),
+                };
+            } else if (asaasError.includes('email')) { // Verifica se o erro menciona "email"
+                 return {
+                    statusCode: 400, 
+                    body: JSON.stringify({ error: 'E-mail inválido. Por favor, verifique o endereço digitado. Nosso curso pode ajudar com esses pequenos deslizes.' }),
                 };
             }
         }
