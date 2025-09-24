@@ -19,7 +19,7 @@ const validCoupons = {
 };
 
 const ACCEPTED_CONTRACT_VERSION = 'v1.0';
-const ACCEPTED_CONTRACT_HASH = 'A938406CB7990B387324C1FCD48578CDA7AFBD3C6F4FD7D5C55844792E030501';
+const ACCEPTED_CONTRACT_HASH = '88559760E4DAF2CEF94D9F5B7069CBCC9A5196106CD771227DB2500EFFBEDD0E';
 
 
 exports.handler = async (event) => {
@@ -72,8 +72,7 @@ exports.handler = async (event) => {
         const ASAAS_API_KEY = process.env.ASAAS_API_KEY;
         if (!ASAAS_API_KEY) throw new Error("Chave da API do Asaas não configurada.");
         
-        // Retornado para o ambiente de Sandbox para testes. Lembre-se de mudar para produção!
-        const asaasApiUrl = 'https://sandbox.asaas.com/api/v3';
+        const asaasApiUrl = 'https://api.asaas.com/api/v3'; // URL DE PRODUÇÃO
 
         const dueDate = new Date(new Date().setDate(new Date().getDate() + 5)).toISOString().split('T')[0];
 
@@ -100,31 +99,23 @@ exports.handler = async (event) => {
             },
         };
 
-        if (paymentMethod === 'CREDIT_CARD') {
-            const customerPayload = { name, email, cpfCnpj: cpf, mobilePhone: phone, postalCode: cep, address, addressNumber, complement, province: bairro };
-            
-            let customerId;
+        const customerPayload = { name, email, cpfCnpj: cpf, mobilePhone: phone, postalCode: cep, address, addressNumber, complement, province: bairro };
+        
+        let customerId;
+        const searchResponse = await axios.get(`${asaasApiUrl}/customers?cpfCnpj=${cpf}`, { headers: { 'access_token': ASAAS_API_KEY }});
 
-            // Etapa 1: Procurar pelo cliente existente através do CPF
-            const searchResponse = await axios.get(`${asaasApiUrl}/customers?cpfCnpj=${cpf}`, { headers: { 'access_token': ASAAS_API_KEY }});
-
-            if (searchResponse.data.data.length > 0) {
-                // Etapa 2: Cliente encontrado, usar o seu ID
-                customerId = searchResponse.data.data[0].id;
-            } else {
-                // Etapa 3: Cliente não encontrado, criar um novo
-                const customerResponse = await axios.post(`${asaasApiUrl}/customers`, customerPayload, { headers: { 'access_token': ASAAS_API_KEY }});
-                customerId = customerResponse.data.id;
-            }
-
-            payload.customer = customerId;
-            
-            if (installments > 1) {
-                payload.installmentCount = installments;
-                payload.installmentValue = parseFloat((coursePrice / installments).toFixed(2));
-            }
+        if (searchResponse.data.data.length > 0) {
+            customerId = searchResponse.data.data[0].id;
         } else {
-             payload.customer = { name, email, cpfCnpj: cpf, mobilePhone: phone, postalCode: cep, address, addressNumber, complement, province: bairro };
+            const customerResponse = await axios.post(`${asaasApiUrl}/customers`, customerPayload, { headers: { 'access_token': ASAAS_API_KEY }});
+            customerId = customerResponse.data.id;
+        }
+
+        payload.customer = customerId;
+        
+        if (paymentMethod === 'CREDIT_CARD' && installments > 1) {
+            payload.installmentCount = installments;
+            payload.installmentValue = parseFloat((coursePrice / installments).toFixed(2));
         }
 
         const response = await axios.post(`${asaasApiUrl}/payments`, payload, {
@@ -140,15 +131,9 @@ exports.handler = async (event) => {
             const asaasError = error.response.data.errors[0].description.toLowerCase();
 
             if (asaasError.includes('cpf') || asaasError.includes('cnpj')) {
-                return {
-                    statusCode: 400, 
-                    body: JSON.stringify({ error: 'CPF inválido. Acontece! Por favor, verifique o número. Nosso curso pode ajudar com esses pequenos deslizes.' }),
-                };
+                return { statusCode: 400, body: JSON.stringify({ error: 'CPF inválido. Acontece! Por favor, verifique o número. Nosso curso pode ajudar com esses pequenos deslizes.' }) };
             } else if (asaasError.includes('email')) {
-                 return {
-                    statusCode: 400, 
-                    body: JSON.stringify({ error: 'E-mail inválido. Por favor, verifique o endereço digitado. Nosso curso pode ajudar com esses pequenos deslizes.' }),
-                };
+                 return { statusCode: 400, body: JSON.stringify({ error: 'E-mail inválido. Por favor, verifique o endereço digitado. Nosso curso pode ajudar com esses pequenos deslizes.' }) };
             }
         }
 
@@ -158,5 +143,4 @@ exports.handler = async (event) => {
         };
     }
 };
-
 
