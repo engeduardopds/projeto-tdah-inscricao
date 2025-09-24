@@ -11,20 +11,17 @@ const err = (code, msg) => ({ statusCode: code, body: msg });
 // Função para enviar o e-mail de boas-vindas com OAuth 2.0
 async function sendWelcomeEmail(customerData) {
     try {
-        // --- INÍCIO DA LÓGICA OAUTH 2.0 ---
         const oauth2Client = new google.auth.OAuth2(
             process.env.GMAIL_CLIENT_ID,
             process.env.GMAIL_CLIENT_SECRET,
-            'https://developers.google.com/oauthplayground' // URL de redirecionamento
+            'https://developers.google.com/oauthplayground'
         );
 
         oauth2Client.setCredentials({
             refresh_token: process.env.GMAIL_REFRESH_TOKEN
         });
 
-        // Obter um novo token de acesso
         const accessToken = await oauth2Client.getAccessToken();
-        // --- FIM DA LÓGICA OAUTH 2.0 ---
 
         const transporter = nodemailer.createTransport({
             service: 'gmail',
@@ -34,7 +31,7 @@ async function sendWelcomeEmail(customerData) {
                 clientId: process.env.GMAIL_CLIENT_ID,
                 clientSecret: process.env.GMAIL_CLIENT_SECRET,
                 refreshToken: process.env.GMAIL_REFRESH_TOKEN,
-                accessToken: accessToken.token, // Usar o token de acesso obtido
+                accessToken: accessToken.token,
             },
         });
 
@@ -135,10 +132,9 @@ exports.handler = async (event) => {
             return ok({ received: true, ignored: true, reason: 'Subsequent installment' });
         }
         
-        // Retornado para o ambiente de Sandbox para testes. Lembre-se de mudar para produção!
-        const asaasApiUrl = 'https://sandbox.asaas.com/api/v3';
-
         let totalInstallments = 1;
+        const asaasApiUrl = 'https://api.asaas.com/api/v3'; // URL DE PRODUÇÃO
+
         if (paymentData.installment) {
             const installmentDetails = await axios.get(`${asaasApiUrl}/installments/${paymentData.installment}`, {
                 headers: { 'access_token': process.env.ASAAS_API_KEY }
