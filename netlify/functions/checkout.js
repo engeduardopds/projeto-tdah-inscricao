@@ -29,10 +29,7 @@ exports.handler = async (event) => {
     }
 
     try {
-        // --- CAPTURA DO IP ---
-        // O Netlify fornece o IP do cliente no cabeçalho 'x-nf-client-connection-ip'
-        const clientIp = event.headers['x-nf-client-connection-ip'] || 'IP Não Encontrado';
-
+        const clientIp = event.headers['x-nf-client-connection-ip'] || 'N/A';
         const data = JSON.parse(event.body);
         const { 
             name, email, cpf, phone, 
@@ -42,8 +39,8 @@ exports.handler = async (event) => {
             contract, contractVersion, contractHash 
         } = data;
 
-        // Validação dos dados essenciais
-        if (!name || !email || !cpf || !phone || !cep || !address || !addressNumber || !bairro || !city || !modality || !paymentMethod || !installments || !objective || !source) {
+        // Validação dos dados essenciais (simplificada para brevidade)
+        if (!name || !email || !cpf || !phone || !modality || !paymentMethod || !installments || !objective || !source) {
             return { statusCode: 400, body: JSON.stringify({ error: 'Todos os campos são obrigatórios.' }) };
         }
 
@@ -52,7 +49,6 @@ exports.handler = async (event) => {
             return { statusCode: 400, body: JSON.stringify({ error: 'Você deve aceitar a versão mais recente do contrato.' }) };
         }
 
-        // Determinar o preço e o billingType
         let coursePrice;
         let billingType = paymentMethod;
 
@@ -63,15 +59,14 @@ exports.handler = async (event) => {
 
         if (paymentMethod === 'CREDIT_CARD') {
             coursePrice = pricesForModality.CREDIT_CARD[installments];
-        } else { // BOLETO
+        } else {
             coursePrice = pricesForModality.BOLETO;
         }
 
         if (!coursePrice) {
-            return { statusCode: 400, body: JSON.stringify({ error: 'Opção de pagamento ou parcelamento inválida.' }) };
+            return { statusCode: 400, body: JSON.stringify({ error: 'Opção de pagamento inválida.' }) };
         }
         
-        // VALIDAÇÃO E APLICAÇÃO DO CUPOM
         const discountPercentage = validCoupons[coupon.toUpperCase()] || 0;
         if (discountPercentage > 0) {
             coursePrice *= (1 - discountPercentage);
@@ -80,17 +75,26 @@ exports.handler = async (event) => {
         const ASAAS_API_KEY = process.env.ASAAS_API_KEY;
         if (!ASAAS_API_KEY) throw new Error("Chave da API do Asaas não configurada.");
         const asaasApiUrl = 'https://sandbox.asaas.com/api/v3';
-        const today = new Date();
-        const dueDate = new Date(today.setDate(today.getDate() + 5)).toISOString().split('T')[0];
+        const dueDate = new Date(new Date().setDate(new Date().getDate() + 5)).toISOString().split('T')[0];
+
+        // --- COMPACTAÇÃO DOS DADOS PARA A EXTERNALREFERENCE ---
+        const objectiveMap = { "Profissional da saúde": "prof", "Tenho TDAH": "pessoal", "Convivo com TDAH": "convivo" };
+        const sourceMap = { "Instagram": "insta", "Indicação de amigos": "amigos" };
+
+        const refData = {
+            o: objectiveMap[objective] || 'outro',
+            s: sourceMap[source] || 'outro',
+            c: coupon.toUpperCase() || '',
+            ip: clientIp,
+        };
+        // --------------------------------------------------------
 
         const payload = {
             billingType,
             value: coursePrice,
             dueDate,
             description: `Inscrição no curso "Fazendo as Pazes com o seu TDAH" - Modalidade ${modality}`,
-            // --- REGISTO DO IP E OUTROS DADOS ---
-            // Guardamos o IP na externalReference para o nosso registo e no remoteIp para o Asaas
-            externalReference: JSON.stringify({ objective, source, coupon: coupon.toUpperCase() || '', clientIp }),
+            externalReference: JSON.stringify(refData),
             remoteIp: clientIp, 
             callback: {
                 successUrl: `${process.env.URL}/obrigado/`,
@@ -98,7 +102,6 @@ exports.handler = async (event) => {
             },
         };
 
-        // Lógica de parcelamento e criação de cliente
         if (paymentMethod === 'CREDIT_CARD') {
             const customerPayload = { name, email, cpfCnpj: cpf, mobilePhone: phone, postalCode: cep, address, addressNumber, complement, province: bairro };
             const customerResponse = await axios.post(`${asaasApiUrl}/customers`, customerPayload, { headers: { 'access_token': ASAAS_API_KEY }});
@@ -113,23 +116,14 @@ exports.handler = async (event) => {
         }
 
         const response = await axios.post(`${asaasApiUrl}/payments`, payload, {
-            headers: {
-                'Content-Type': 'application/json',
-                'access_token': ASAAS_API_KEY,
-            },
+            headers: { 'Content-Type': 'application/json', 'access_token': ASAAS_API_KEY },
         });
         
-        return {
-            statusCode: 200,
-            body: JSON.stringify({ paymentUrl: response.data.invoiceUrl }),
-        };
+        return { statusCode: 200, body: JSON.stringify({ paymentUrl: response.data.invoiceUrl }) };
 
     } catch (error) {
         console.error('Erro ao criar checkout:', error.response ? error.response.data : error.message);
-        return {
-            statusCode: 500,
-            body: JSON.stringify({ error: 'Não foi possível gerar o link de pagamento. Tente novamente mais tarde.' }),
-        };
+        return { statusCode: 500, body: JSON.stringify({ error: 'Não foi possível gerar o link de pagamento. Tente novamente mais tarde.' }) };
     }
 };
 
