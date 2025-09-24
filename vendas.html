@@ -85,15 +85,15 @@
                         <input type="text" id="address" name="address" required class="mt-1 block w-full px-4 py-3 bg-gray-50 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-[#4B3F8F] focus:border-transparent transition">
                     </div>
                      <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                         <div class="sm:col-span-1">
-                             <label for="addressNumber" class="block text-sm font-medium text-[#1A2A4C]/90">Número</label>
-                             <input type="text" id="addressNumber" name="addressNumber" required inputmode="numeric" class="mt-1 block w-full px-4 py-3 bg-gray-50 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-[#4B3F8F] focus:border-transparent transition" placeholder="">
-                         </div>
-                         <div class="sm:col-span-2">
-                             <label for="complement" class="block text-sm font-medium text-[#1A2A4C]/90">Complemento (Opcional)</label>
-                             <input type="text" id="complement" name="complement" class="mt-1 block w-full px-4 py-3 bg-gray-50 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-[#4B3F8F] focus:border-transparent transition" placeholder="Apto, bloco, casa, etc.">
-                         </div>
-                     </div>
+                        <div class="sm:col-span-1">
+                            <label for="addressNumber" class="block text-sm font-medium text-[#1A2A4C]/90">Número</label>
+                            <input type="text" id="addressNumber" name="addressNumber" required inputmode="numeric" class="mt-1 block w-full px-4 py-3 bg-gray-50 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-[#4B3F8F] focus:border-transparent transition" placeholder="">
+                        </div>
+                        <div class="sm:col-span-2">
+                            <label for="complement" class="block text-sm font-medium text-[#1A2A4C]/90">Complemento (Opcional)</label>
+                            <input type="text" id="complement" name="complement" class="mt-1 block w-full px-4 py-3 bg-gray-50 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-[#4B3F8F] focus:border-transparent transition" placeholder="Apto, bloco, casa, etc.">
+                        </div>
+                    </div>
                     <div>
                         <label for="bairro" class="block text-sm font-medium text-[#1A2A4C]/90">Bairro</label>
                         <input type="text" id="bairro" name="bairro" required class="mt-1 block w-full px-4 py-3 bg-gray-50 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-[#4B3F8F] focus:border-transparent transition">
@@ -132,11 +132,8 @@
                                 </label>
                             </div>
                         </div>
-                        <div id="installments-container">
-                            <label for="installments" class="block text-sm font-medium text-[#1A2A4C]/90">Opções de Pagamento</label>
-                            <select id="installments" name="installments" class="mt-1 block w-full pl-3 pr-10 py-3 text-base bg-gray-50 border-gray-300 focus:outline-none focus:ring-[#4B3F8F] focus:border-[#4B3F8F] sm:text-sm rounded-lg shadow-sm transition"></select>
-                        </div>
-                         <div>
+                        <!-- ORDEM CORRIGIDA: CUPOM PRIMEIRO -->
+                        <div>
                             <label for="coupon" class="block text-sm font-medium text-[#1A2A4C]/90">Cupom de Desconto (Opcional)</label>
                             <div class="mt-1 flex rounded-lg shadow-sm">
                                 <input type="text" name="coupon" id="coupon" class="flex-1 block w-full min-w-0 rounded-none rounded-l-lg px-4 py-3 bg-gray-50 border border-gray-300 focus:outline-none focus:ring-2 focus:ring-[#4B3F8F] focus:border-transparent transition" placeholder="ABC12">
@@ -145,6 +142,11 @@
                                 </button>
                             </div>
                             <p id="coupon-message" class="mt-2 text-sm text-green-600 font-medium"></p>
+                        </div>
+                        <!-- PARCELAS DEPOIS -->
+                        <div id="installments-container">
+                            <label for="installments" class="block text-sm font-medium text-[#1A2A4C]/90">Opções de Pagamento</label>
+                            <select id="installments" name="installments" class="mt-1 block w-full pl-3 pr-10 py-3 text-base bg-gray-50 border-gray-300 focus:outline-none focus:ring-[#4B3F8F] focus:border-[#4B3F8F] sm:text-sm rounded-lg shadow-sm transition"></select>
                         </div>
                     </div>
 
@@ -210,7 +212,7 @@
         };
 
         const validCoupons = {
-            'PAZES15': 0.15,
+            'PAZES15': 0.15, // Cupom corrigido
             'PALESTRA10': 0.10
         };
 
@@ -340,7 +342,7 @@
                 installments: formData.get('installments'),
                 objective: formData.get('objective'),
                 source: formData.get('source'),
-                coupon: couponInput.value.toUpperCase(), // Garante que o cupom enviado é o aplicado
+                coupon: couponInput.value.toUpperCase(),
                 contract: formData.get('contract') === 'on',
                 contractVersion: CONTRACT_VERSION,
                 contractHash: CONTRACT_HASH
@@ -359,7 +361,7 @@
                 if (!res.ok) throw new Error(result.error || txt || 'Ocorreu um erro. Tente novamente.');
                 
                 window.location.href = result.paymentUrl;
-                                        
+                                
             } catch (error) {
                 messageContainer.textContent = error.message;
                 submitButton.disabled = false;
@@ -373,5 +375,4 @@
     </script>
 </body>
 </html>
-
 
