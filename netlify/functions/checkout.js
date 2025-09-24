@@ -91,7 +91,7 @@ exports.handler = async (event) => {
             billingType,
             value: coursePrice,
             dueDate,
-            description: `Inscrição no curso "Fazendo as Pazes com o seu TDAH" - Modalidade ${modality}`,
+            description: `Inscrição no curso "Fazendo as pazes com seu TDAH" - Modalidade ${modality}`,
             externalReference: JSON.stringify(refData),
             remoteIp: clientIp, 
             callback: {
