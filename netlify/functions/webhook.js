@@ -8,14 +8,33 @@ const nodemailer = require('nodemailer');
 const ok = (obj) => ({ statusCode: 200, headers: { "Content-Type": "application/json" }, body: JSON.stringify(obj || { ok: true }) });
 const err = (code, msg) => ({ statusCode: code, body: msg });
 
-// Função para enviar o e-mail de boas-vindas
+// Função para enviar o e-mail de boas-vindas com OAuth 2.0
 async function sendWelcomeEmail(customerData) {
     try {
+        // --- INÍCIO DA LÓGICA OAUTH 2.0 ---
+        const oauth2Client = new google.auth.OAuth2(
+            process.env.GMAIL_CLIENT_ID,
+            process.env.GMAIL_CLIENT_SECRET,
+            'https://developers.google.com/oauthplayground' // URL de redirecionamento
+        );
+
+        oauth2Client.setCredentials({
+            refresh_token: process.env.GMAIL_REFRESH_TOKEN
+        });
+
+        // Obter um novo token de acesso
+        const accessToken = await oauth2Client.getAccessToken();
+        // --- FIM DA LÓGICA OAUTH 2.0 ---
+
         const transporter = nodemailer.createTransport({
             service: 'gmail',
             auth: {
+                type: 'OAuth2',
                 user: process.env.GMAIL_ADDRESS,
-                pass: process.env.GMAIL_APP_PASSWORD, 
+                clientId: process.env.GMAIL_CLIENT_ID,
+                clientSecret: process.env.GMAIL_CLIENT_SECRET,
+                refreshToken: process.env.GMAIL_REFRESH_TOKEN,
+                accessToken: accessToken.token, // Usar o token de acesso obtido
             },
         });
 
@@ -38,7 +57,7 @@ async function sendWelcomeEmail(customerData) {
         console.log('E-mail de boas-vindas enviado com sucesso:', info.response);
 
     } catch (error) {
-        console.error('Erro ao tentar enviar e-mail com Nodemailer:', error);
+        console.error('Erro ao tentar enviar e-mail com OAuth 2.0:', error);
     }
 }
 
@@ -56,14 +75,12 @@ async function appendToSheet(customerData, paymentData, installmentsCount, exter
 
         const sheets = google.sheets({ version: 'v4', auth });
         
-        // --- DESCOMPACTAÇÃO DOS DADOS DA EXTERNALREFERENCE ---
         const refData = JSON.parse(externalReference || '{}');
         const objectiveMap = { prof: "Profissional da saúde", pessoal: "Tenho TDAH", convivo: "Convivo com TDAH" };
         const sourceMap = { insta: "Instagram", amigos: "Indicação de amigos" };
         
         const objectiveText = objectiveMap[refData.o] || refData.o || '';
         const sourceText = sourceMap[refData.s] || refData.s || '';
-        // ----------------------------------------------------
 
         const newRow = [
             new Date().toLocaleString('pt-BR'),
@@ -75,8 +92,8 @@ async function appendToSheet(customerData, paymentData, installmentsCount, exter
             paymentData.id,
             paymentData.billingType === 'CREDIT_CARD' ? 'Cartão de Crédito' : 'Boleto ou PIX',
             installmentsCount > 1 ? installmentsCount : '-',
-            objectiveText, // Usa o texto descompactado
-            sourceText,    // Usa o texto descompactado
+            objectiveText,
+            sourceText,
             refData.c || '',
             refData.ip || ''
         ];
