@@ -211,14 +211,15 @@
         const applyCouponBtn = document.getElementById('apply-coupon-btn');
         const couponMessage = document.getElementById('coupon-message');
 
+        // Estrutura de preços - Limite de 5 parcelas
         const coursePrices = {
-            Online: { BOLETO: 800.00, CREDIT_CARD: { 1: 830.00, 2: 830.97, 3: 831.48, 4: 831.99, 5: 832.49, 6: 832.99 }},
-            Presencial: { BOLETO: 900.00, CREDIT_CARD: { 1: 930.00, 2: 934.59, 3: 935.09, 4: 935.60, 5: 936.11, 6: 936.61 }}
+            Online: { BOLETO: 800.00, CREDIT_CARD: { 1: 830.00, 2: 830.97, 3: 831.48, 4: 831.99, 5: 832.49 }},
+            Presencial: { BOLETO: 900.00, CREDIT_CARD: { 1: 930.00, 2: 934.59, 3: 935.09, 4: 935.60, 5: 936.11 }}
         };
 
         const validCoupons = {
-            'PAZES15': 0.15, // 15% de desconto
-            'PALESTRA10': 0.10 // 10% de desconto
+            'PAZES15': 0.15,
+            'PALESTRA10': 0.10
         };
         
         // --- FUNÇÕES AUXILIARES ---
