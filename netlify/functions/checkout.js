@@ -72,7 +72,7 @@ exports.handler = async (event) => {
         const ASAAS_API_KEY = process.env.ASAAS_API_KEY;
         if (!ASAAS_API_KEY) throw new Error("Chave da API do Asaas não configurada.");
         
-        const asaasApiUrl = 'https://api.asaas.com/api/v3'; // URL DE PRODUÇÃO
+        const asaasApiUrl = 'https://www.asaas.com/api/v3'; // URL DE PRODUÇÃO CORRIGIDA
 
         const dueDate = new Date(new Date().setDate(new Date().getDate() + 5)).toISOString().split('T')[0];
 
