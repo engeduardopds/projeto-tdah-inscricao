@@ -56,8 +56,14 @@ async function appendToSheet(customerData, paymentData, installmentsCount, exter
 
         const sheets = google.sheets({ version: 'v4', auth });
         
-        // --- LEITURA DOS DADOS EXTRAS, INCLUINDO O IP ---
+        // --- DESCOMPACTAÇÃO DOS DADOS DA EXTERNALREFERENCE ---
         const refData = JSON.parse(externalReference || '{}');
+        const objectiveMap = { prof: "Profissional da saúde", pessoal: "Tenho TDAH", convivo: "Convivo com TDAH" };
+        const sourceMap = { insta: "Instagram", amigos: "Indicação de amigos" };
+        
+        const objectiveText = objectiveMap[refData.o] || refData.o || '';
+        const sourceText = sourceMap[refData.s] || refData.s || '';
+        // ----------------------------------------------------
 
         const newRow = [
             new Date().toLocaleString('pt-BR'),
@@ -69,10 +75,10 @@ async function appendToSheet(customerData, paymentData, installmentsCount, exter
             paymentData.id,
             paymentData.billingType === 'CREDIT_CARD' ? 'Cartão de Crédito' : 'Boleto ou PIX',
             installmentsCount > 1 ? installmentsCount : '-',
-            refData.objective || '',
-            refData.source || '',
-            refData.coupon || '',
-            refData.clientIp || '' // Adiciona o IP na nova coluna
+            objectiveText, // Usa o texto descompactado
+            sourceText,    // Usa o texto descompactado
+            refData.c || '',
+            refData.ip || ''
         ];
 
         await sheets.spreadsheets.values.append({
