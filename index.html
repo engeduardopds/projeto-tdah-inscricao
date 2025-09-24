@@ -3,373 +3,261 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Fazendo as pazes com seu TDAH - Inscrição</title>
+    <title>Curso Fazendo as pazes com seu TDAH</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700;900&display=swap" rel="stylesheet">
     <style>
         body {
             font-family: 'Inter', sans-serif;
             background-color: #F8F7F2;
             color: #1A2A4C;
         }
-        .loader {
-            border-top-color: #3498db;
-            animation: spin 1s linear infinite;
+        .cta-button {
+            transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
         }
-        @keyframes spin {
-            to { transform: rotate(360deg); }
+        .cta-button:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
         }
-        .address-loading {
-            background-color: #e9e9e9 !important;
-            cursor: wait;
+        /* Estilos para o FAQ */
+        .faq-question {
+            transition: background-color 0.3s ease;
+        }
+        .faq-answer {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.5s ease-in-out, padding 0.5s ease-in-out;
+        }
+        .faq-item.active .faq-answer {
+            max-height: 500px; /* Um valor alto para permitir a expansão */
+            padding-top: 1rem;
+            padding-bottom: 1rem;
+        }
+        .faq-item.active .faq-arrow {
+            transform: rotate(180deg);
+        }
+        .faq-arrow {
+            transition: transform 0.3s ease;
         }
     </style>
 </head>
-<body class="flex items-center justify-center min-h-screen p-4">
+<body class="antialiased">
 
-    <div class="w-full max-w-lg mx-auto">
+    <!-- Botão Flutuante do WhatsApp -->
+    <a href="https://wa.me/555189316671" target="_blank" rel="noopener noreferrer" class="fixed bottom-6 right-6 bg-green-500 text-white p-4 rounded-full shadow-lg z-50 cta-button">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="w-8 h-8">
+            <path d="M16.634 14.123c-.347-.174-.972-.48-1.123-.54-.151-.06-.26-.089-.37.174-.109.263-.424.54-.52.657-.097.117-.194.131-.343.06-.149-.071-.628-.231-1.196-.733-.45-.386-.744-.863-.831-1.011-.088-.149-.01.22 0-.37.009-.15.07-.248.103-.33.033-.082.068-.14.103-.212.034-.072.017-.136-.034-.224-.051-.088-.37-.89-.507-1.222-.136-.332-.273-.286-.37-.286-.097 0-.21.014-.324.014-.114 0-.297.043-.45.22-.153.176-.58.566-.58 1.385 0 .818.594 1.605.678 1.722.084.117 1.173 1.795 2.848 2.51.41.176.732.28.98.36.248.08.472.067.65.04.194-.03.58-.236.66-.465.08-.23.08-.426.056-.464-.024-.038-.084-.06-.14-.084zM12.002 2.002a9.982 9.982 0 00-9.982 9.982c0 1.782.467 3.467 1.288 4.912L2 22l5.242-1.372a9.982 9.982 0 004.758 1.22c5.51 0 9.982-4.472 9.982-9.982a9.982 9.982 0 00-9.982-9.982zM12.002 20.18a8.163 8.163 0 01-4.14-1.14l-.3-.18-3.075.805.82-3a8.163 8.163 0 01-1.252-4.383c0-4.512 3.66-8.173 8.173-8.173 4.512 0 8.173 3.66 8.173 8.173 0 4.513-3.66 8.174-8.174 8.174z" />
+        </svg>
+    </a>
 
-        <!-- Header -->
-        <header class="text-center mb-8">
-            <h1 class="text-3xl md:text-4xl font-bold text-[#1A2A4C]">Fazendo as pazes com seu TDAH</h1>
-            <p class="mt-2 text-lg text-[#1A2A4C]/80">Preencha os dados abaixo para garantir sua vaga.</p>
+    <div class="w-full">
+
+        <!-- Secção Herói -->
+        <header class="bg-white text-center py-16 md:py-24 px-6">
+            <div class="max-w-4xl mx-auto">
+                <h1 class="text-4xl md:text-6xl font-black text-[#1A2A4C] tracking-tight">FAZENDO AS PAZES COM SEU TDAH</h1>
+                <p class="mt-4 text-xl md:text-2xl text-[#1A2A4C]/80 font-medium">O método prático para transformar informação em hábitos e reconquistar o controlo da sua rotina.</p>
+                <a href="/inscricao.html" class="cta-button inline-block mt-10 text-white bg-[#5DBA8B] hover:bg-[#4A9E75] font-bold py-4 px-10 rounded-xl text-lg shadow-lg">
+                    Quero a minha vaga!
+                </a>
+            </div>
         </header>
 
-        <main class="bg-white rounded-2xl shadow-lg p-6 md:p-8 transition-all duration-300">
-            <form id="enrollment-form">
-                <div class="space-y-5">
-                    <!-- Dados Pessoais -->
-                    <h3 class="text-lg font-semibold border-b pb-2 text-[#1A2A4C]">Dados Pessoais</h3>
-                    <div>
-                        <label for="name" class="block text-sm font-medium text-[#1A2A4C]/90">Nome Completo</label>
-                        <input type="text" id="name" name="name" required class="mt-1 block w-full px-4 py-3 bg-gray-50 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-[#4B3F8F] focus:border-transparent transition" placeholder="Seu nome completo">
+        <!-- Secção Ministrantes -->
+        <section class="py-20 px-6">
+            <div class="max-w-6xl mx-auto">
+                <h2 class="text-3xl md:text-4xl font-bold text-center mb-12">Conheça os ministrantes</h2>
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8 text-center">
+                    <!-- Ministrante 1 -->
+                    <div class="space-y-3">
+                        <div class="w-40 h-40 mx-auto rounded-full overflow-hidden">
+                           <img src="https://i.imgur.com/4p6436n.png" alt="Foto de Laura do Valle" class="w-full h-full object-cover">
+                        </div>
+                        <h3 class="text-xl font-bold">Laura do Valle</h3>
+                        <p class="text-[#1A2A4C]/80">Psicóloga, Mestre em Psicologia Clínica, especialista em Terapia Cognitivo-Comportamental e Psicologia Organizacional com formação em DBT.</p>
                     </div>
-                    <div>
-                        <label for="cpf" class="block text-sm font-medium text-[#1A2A4C]/90">CPF</label>
-                        <input type="text" id="cpf" name="cpf" required inputmode="numeric" class="mt-1 block w-full px-4 py-3 bg-gray-50 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-[#4B3F8F] focus:border-transparent transition" placeholder="Apenas números">
+                    <!-- Ministrante 2 -->
+                    <div class="space-y-3">
+                        <div class="w-40 h-40 mx-auto rounded-full overflow-hidden">
+                             <img src="https://i.imgur.com/01Z5hjI.png" alt="Foto de Vítor Torrez" class="w-full h-full object-cover">
+                        </div>
+                        <h3 class="text-xl font-bold">Vítor Torrez</h3>
+                        <p class="text-[#1A2A4C]/80">Médico psiquiatra, Doutor em Bioquímica com formação em DBT e professor. Possui ampla experiência clínica no tratamento do TDAH.</p>
                     </div>
-                    <div>
-                        <label for="email" class="block text-sm font-medium text-[#1A2A4C]/90">E-mail</label>
-                        <input type="email" id="email" name="email" required class="mt-1 block w-full px-4 py-3 bg-gray-50 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-[#4B3F8F] focus:border-transparent transition" placeholder="seu@email.com">
+                    <!-- Ministrante 3 -->
+                    <div class="space-y-3">
+                        <div class="w-40 h-40 mx-auto rounded-full overflow-hidden">
+                             <img src="https://i.imgur.com/RmjAHk1.png" alt="Foto de Carolina Petry" class="w-full h-full object-cover">
+                        </div>
+                        <h3 class="text-xl font-bold">Carolina Petry</h3>
+                        <p class="text-[#1A2A4C]/80">Psicóloga, especialista em TCC e DBT, com formação em andamento em Neurociências. Possui experiência com adolescentes e adultos com TDAH.</p>
                     </div>
-                    <div>
-                        <label for="phone" class="block text-sm font-medium text-[#1A2A4C]/90">Celular (com DDD)</label>
-                        <input type="tel" id="phone" name="phone" required class="mt-1 block w-full px-4 py-3 bg-gray-50 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-[#4B3F8F] focus:border-transparent transition" placeholder="Apenas números">
+                    <!-- Ministrante 4 -->
+                    <div class="space-y-3">
+                        <div class="w-40 h-40 mx-auto rounded-full overflow-hidden">
+                             <img src="https://i.imgur.com/7vhcYBA.png" alt="Foto de Stephanie Cerveira" class="w-full h-full object-cover">
+                        </div>
+                        <h3 class="text-xl font-bold">Stephanie Cerveira</h3>
+                        <p class="text-[#1A2A4C]/80">Psicóloga, especialista em TCC e DBT com experiência em saúde pública. Atua com pessoas neurodivergentes em psicoterapia e treino de habilidades.</p>
                     </div>
-                    <div>
-                        <label for="objective" class="block text-sm font-medium text-[#1A2A4C]/90">Qual seu objetivo com o curso?</label>
-                        <select id="objective" name="objective" required class="mt-1 block w-full pl-3 pr-10 py-3 text-base bg-gray-50 border-gray-300 focus:outline-none focus:ring-[#4B3F8F] focus:border-[#4B3F8F] sm:text-sm rounded-lg shadow-sm transition">
-                            <option>Profissional da saúde</option>
-                            <option>Tenho TDAH</option>
-                            <option>Convivo com TDAH</option>
-                        </select>
-                    </div>
-                    <div>
-                        <label for="source" class="block text-sm font-medium text-[#1A2A4C]/90">Como ficou sabendo do curso?</label>
-                        <select id="source" name="source" required class="mt-1 block w-full pl-3 pr-10 py-3 text-base bg-gray-50 border-gray-300 focus:outline-none focus:ring-[#4B3F8F] focus:border-[#4B3F8F] sm:text-sm rounded-lg shadow-sm transition">
-                            <option>Instagram</option>
-                            <option>Indicação de amigos</option>
-                        </select>
-                    </div>
+                </div>
+            </div>
+        </section>
 
-                    <!-- Endereço -->
-                    <h3 class="text-lg font-semibold border-b pb-2 pt-4 text-[#1A2A4C]">Endereço</h3>
-                    <div>
-                        <label for="cep" class="block text-sm font-medium text-[#1A2A4C]/90">CEP</label>
-                        <input type="text" id="cep" name="cep" required inputmode="numeric" class="mt-1 block w-full px-4 py-3 bg-gray-50 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-[#4B3F8F] focus:border-transparent transition" placeholder="Apenas números">
-                    </div>
-                    <div>
-                        <label for="address" class="block text-sm font-medium text-[#1A2A4C]/90">Endereço</label>
-                        <input type="text" id="address" name="address" required class="mt-1 block w-full px-4 py-3 bg-gray-50 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-[#4B3F8F] focus:border-transparent transition">
-                    </div>
-                     <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                         <div class="sm:col-span-1">
-                             <label for="addressNumber" class="block text-sm font-medium text-[#1A2A4C]/90">Número</label>
-                             <input type="text" id="addressNumber" name="addressNumber" required inputmode="numeric" class="mt-1 block w-full px-4 py-3 bg-gray-50 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-[#4B3F8F] focus:border-transparent transition" placeholder="">
-                         </div>
-                         <div class="sm:col-span-2">
-                             <label for="complement" class="block text-sm font-medium text-[#1A2A4C]/90">Complemento (Opcional)</label>
-                             <input type="text" id="complement" name="complement" class="mt-1 block w-full px-4 py-3 bg-gray-50 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-[#4B3F8F] focus:border-transparent transition" placeholder="Apto, bloco, casa, etc.">
-                         </div>
-                     </div>
-                    <div>
-                        <label for="bairro" class="block text-sm font-medium text-[#1A2A4C]/90">Bairro</label>
-                        <input type="text" id="bairro" name="bairro" required class="mt-1 block w-full px-4 py-3 bg-gray-50 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-[#4B3F8F] focus:border-transparent transition">
-                    </div>
-                   <div>
-                        <label for="city" class="block text-sm font-medium text-[#1A2A4C]/90">Cidade - Estado</label>
-                        <input type="text" id="city" name="city" required class="mt-1 block w-full px-4 py-3 bg-gray-50 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-[#4B3F8F] focus:border-transparent transition">
-                    </div>
-                    
-                    <!-- Detalhes da Inscrição -->
-                    <h3 class="text-lg font-semibold border-b pb-2 pt-4 text-[#1A2A4C]">Detalhes da Inscrição</h3>
-                    <div class="space-y-5">
-                        <div>
-                             <label class="block text-sm font-medium text-[#1A2A4C]/90">Modalidade do Curso</label>
-                             <div class="mt-2 grid grid-cols-2 gap-4">
-                                 <label for="modality-online" class="flex items-center justify-center text-center p-4 border border-gray-300 rounded-lg cursor-pointer hover:bg-gray-50 transition has-[:checked]:bg-[#5DBA8B]/10 has-[:checked]:border-[#5DBA8B] has-[:checked]:ring-2 has-[:checked]:ring-[#5DBA8B]">
-                                     <input type="radio" id="modality-online" name="modality" value="Online" checked class="sr-only">
-                                     <span class="text-base font-medium text-[#1A2A4C]">Online</span>
-                                 </label>
-                                 <label for="modality-presencial" class="flex items-center justify-center text-center p-4 border border-gray-300 rounded-lg cursor-pointer hover:bg-gray-50 transition has-[:checked]:bg-[#4B3F8F]/10 has-[:checked]:border-[#4B3F8F] has-[:checked]:ring-2 has-[:checked]:ring-[#4B3F8F]">
-                                     <input type="radio" id="modality-presencial" name="modality" value="Presencial" class="sr-only">
-                                     <span class="text-base font-medium text-[#1A2A4C]">Presencial</span>
-                                 </label>
-                             </div>
-                        </div>
-                        <div>
-                            <label class="block text-sm font-medium text-[#1A2A4C]/90">Forma de Pagamento</label>
-                            <div class="mt-2 grid grid-cols-2 gap-4">
-                                <label class="flex items-center justify-center text-center p-4 border border-gray-300 rounded-lg cursor-pointer hover:bg-gray-50 transition has-[:checked]:bg-blue-50 has-[:checked]:border-blue-400 has-[:checked]:ring-2 has-[:checked]:ring-blue-400">
-                                    <input type="radio" name="paymentMethod" value="CREDIT_CARD" checked class="sr-only">
-                                    <span class="text-sm font-medium text-[#1A2A4C]">Cartão de Crédito ou Débito</span>
-                                </label>
-                                <label class="flex items-center justify-center text-center p-4 border border-gray-300 rounded-lg cursor-pointer hover:bg-gray-50 transition has-[:checked]:bg-blue-50 has-[:checked]:border-blue-400 has-[:checked]:ring-2 has-[:checked]:ring-blue-400">
-                                    <input type="radio" name="paymentMethod" value="BOLETO" class="sr-only">
-                                    <span class="text-sm font-medium text-[#1A2A4C]">Boleto ou PIX</span>
-                                </label>
-                            </div>
-                        </div>
-                        <div id="installments-container">
-                            <label for="installments" class="block text-sm font-medium text-[#1A2A4C]/90">Opções de Pagamento</label>
-                            <select id="installments" name="installments" class="mt-1 block w-full pl-3 pr-10 py-3 text-base bg-gray-50 border-gray-300 focus:outline-none focus:ring-[#4B3F8F] focus:border-[#4B3F8F] sm:text-sm rounded-lg shadow-sm transition"></select>
-                        </div>
-                         <div>
-                            <label for="coupon" class="block text-sm font-medium text-[#1A2A4C]/90">Cupom de Desconto (Opcional)</label>
-                            <div class="mt-1 flex rounded-lg shadow-sm">
-                                <input type="text" name="coupon" id="coupon" class="flex-1 block w-full min-w-0 rounded-none rounded-l-lg px-4 py-3 bg-gray-50 border border-gray-300 focus:outline-none focus:ring-2 focus:ring-[#4B3F8F] focus:border-transparent transition" placeholder="ABC12">
-                                <button type="button" id="apply-coupon-btn" class="inline-flex items-center px-4 py-2 border border-l-0 border-gray-300 bg-gray-100 text-gray-600 rounded-r-md hover:bg-gray-200 transition">
-                                    Aplicar
-                                </button>
-                            </div>
-                            <p id="coupon-message" class="mt-2 text-sm text-green-600 font-medium"></p>
-                        </div>
-                    </div>
+        <!-- Secção "No curso você irá ter..." -->
+        <main class="py-20 px-6 bg-white">
+            <div class="max-w-3xl mx-auto">
+                <h2 class="text-3xl md:text-4xl font-bold text-center mb-16">No curso você irá ter...</h2>
 
-                    <!-- Contrato -->
-                    <div class="flex items-start pt-2">
-                        <div class="flex items-center h-5">
-                            <input id="contract" name="contract" type="checkbox" required class="focus:ring-[#4B3F8F] h-4 w-4 text-[#4B3F8F] border-gray-300 rounded">
+                <div class="space-y-12">
+                    <!-- Item 1 -->
+                    <div class="flex items-start gap-6">
+                        <span class="flex-shrink-0 flex items-center justify-center h-12 w-12 rounded-full bg-[#4B3F8F]/10 text-[#4B3F8F] font-bold text-lg">1</span>
+                        <div>
+                            <h3 class="text-2xl font-bold mb-2">Um método prático e aplicável</h3>
+                            <p class="text-lg text-[#1A2A4C]/80">Aprenda explicações acessíveis e transforme-as imediatamente em estratégias para o seu dia a dia. Chega de teoria solta, é hora de criar hábitos que funcionam.</p>
                         </div>
-                        <div class="ml-3 text-sm">
-                            <label for="contract" class="font-medium text-[#1A2A4C]/90">
-                                Li e aceito o 
-                                <a href="/contrato.pdf" target="_blank" rel="noopener noreferrer" class="text-[#4B3F8F] hover:underline">contrato v1.0</a>
-                            </label>
+                    </div>
+                    <!-- Item 2 -->
+                    <div class="flex items-start gap-6">
+                         <span class="flex-shrink-0 flex items-center justify-center h-12 w-12 rounded-full bg-[#4B3F8F]/10 text-[#4B3F8F] font-bold text-lg">2</span>
+                        <div>
+                            <h3 class="text-2xl font-bold mb-2">Uma estrutura clara e organizada</h3>
+                            <p class="text-lg text-[#1A2A4C]/80">Com 8 encontros organizados, vamos desde o funcionamento do cérebro até o seu kit de estratégias pessoais, passando por procrastinação e manejo de sintomas.</p>
+                        </div>
+                    </div>
+                    <!-- Item 3 -->
+                    <div class="flex items-start gap-6">
+                         <span class="flex-shrink-0 flex items-center justify-center h-12 w-12 rounded-full bg-[#4B3F8F]/10 text-[#4B3F8F] font-bold text-lg">3</span>
+                        <div>
+                            <h3 class="text-2xl font-bold mb-2">Conteúdo baseado em ciência</h3>
+                            <p class="text-lg text-[#1A2A4C]/80">O nosso time de especialistas planejou cada detalhe para oferecer um conteúdo de excelência, com técnicas para foco, manejo das emoções e motivação.</p>
+                        </div>
+                    </div>
+                     <!-- Item 4 -->
+                    <div class="flex items-start gap-6">
+                         <span class="flex-shrink-0 flex items-center justify-center h-12 w-12 rounded-full bg-[#4B3F8F]/10 text-[#4B3F8F] font-bold text-lg">4</span>
+                        <div>
+                            <h3 class="text-2xl font-bold mb-2">Flexibilidade de formato</h3>
+                            <p class="text-lg text-[#1A2A4C]/80">Mesma qualidade, duas opções. Escolha o formato que funciona melhor para a sua rotina, seja ele online ou presencial.</p>
+                        </div>
+                    </div>
+                    <!-- Item 5 -->
+                     <div class="flex items-start gap-6">
+                         <span class="flex-shrink-0 flex items-center justify-center h-12 w-12 rounded-full bg-[#4B3F8F]/10 text-[#4B3F8F] font-bold text-lg">5</span>
+                        <div>
+                            <h3 class="text-2xl font-bold mb-2">Materiais de apoio para a vida</h3>
+                            <p class="text-lg text-[#1A2A4C]/80">Receba um guia completo de materiais para consultar sempre que precisar, com conteúdos valiosos sobre TDAH, organização e planejamento.</p>
+                        </div>
+                    </div>
+                    <!-- Item 6 -->
+                     <div class="flex items-start gap-6">
+                         <span class="flex-shrink-0 flex items-center justify-center h-12 w-12 rounded-full bg-[#4B3F8F]/10 text-[#4B3F8F] font-bold text-lg">6</span>
+                        <div>
+                            <h3 class="text-2xl font-bold mb-2">Suporte contínuo pós-curso</h3>
+                            <p class="text-lg text-[#1A2A4C]/80">Por 3 meses após o término do grupo, você continua a receber o nosso acompanhamento via e-mail para ajustes finos e para consolidar os seus novos hábitos.</p>
                         </div>
                     </div>
                 </div>
-
-                <!-- Botão de Envio -->
-                <div class="mt-8">
-                    <button type="submit" id="submit-button" class="w-full flex justify-center items-center text-white bg-[#5DBA8B] hover:bg-[#4A9E75] transition-all duration-300 font-bold py-4 px-6 rounded-xl text-lg shadow-md hover:shadow-lg focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#5DBA8B] disabled:opacity-50 disabled:cursor-not-allowed">
-                        <span class="button-text">Ir para o Pagamento</span>
-                        <div class="loader ease-linear rounded-full border-4 border-t-4 border-gray-200 h-6 w-6 ml-3 hidden"></div>
-                    </button>
-                </div>
-            </form>
-
-            <div id="message-container" class="mt-4 text-center text-red-600 font-medium"></div>
-
+            </div>
         </main>
-        <footer class="text-center mt-8">
-            <p class="text-sm text-[#1A2A4C]/60">&copy; 2025 Fazendo as pazes com seu TDAH. Todos os direitos reservados.</p>
+        
+        <!-- Secção FAQ -->
+        <section class="py-20 px-6">
+            <div class="max-w-3xl mx-auto text-center">
+                <h2 class="text-3xl md:text-4xl font-bold text-center mb-12">Perguntas Frequentes</h2>
+                <div id="faq-container" class="space-y-4 text-left">
+                    <!-- Pergunta 1 -->
+                    <div class="faq-item border-b border-gray-300 pb-4">
+                        <div class="faq-question flex justify-between items-center cursor-pointer py-2">
+                            <h3 class="text-xl font-semibold">Para quem é este curso?</h3>
+                            <span class="faq-arrow text-[#4B3F8F]">
+                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="3" stroke="currentColor" class="w-6 h-6"><path stroke-linecap="round" stroke-linejoin="round" d="M19.5 8.25l-7.5 7.5-7.5-7.5" /></svg>
+                            </span>
+                        </div>
+                        <div class="faq-answer px-2 text-lg text-[#1A2A4C]/80">
+                            <p class="text-justify">Este curso foi desenhado para adultos com TDAH que procuram estratégias práticas para o dia a dia; profissionais da saúde que desejam aprofundar os seus conhecimentos; e familiares e amigos que convivem com pessoas com TDAH e querem aprender a oferecer o melhor suporte.</p>
+                        </div>
+                    </div>
+                    <!-- Pergunta 2 -->
+                    <div class="faq-item border-b border-gray-300 pb-4">
+                        <div class="faq-question flex justify-between items-center cursor-pointer py-2">
+                            <h3 class="text-xl font-semibold">Quais as formas de pagamento?</h3>
+                            <span class="faq-arrow text-[#4B3F8F]">
+                                 <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="3" stroke="currentColor" class="w-6 h-6"><path stroke-linecap="round" stroke-linejoin="round" d="M19.5 8.25l-7.5 7.5-7.5-7.5" /></svg>
+                            </span>
+                        </div>
+                        <div class="faq-answer px-2 text-lg text-[#1A2A4C]/80">
+                            <p class="text-justify">Aceitamos pagamentos via PIX, Boleto Bancário, Cartão de Débito e Cartão de Crédito. No Cartão de Crédito, oferecemos a possibilidade de parcelamento em até 5 vezes.</p>
+                        </div>
+                    </div>
+                    <!-- Pergunta 3 -->
+                    <div class="faq-item border-b border-gray-300 pb-4">
+                        <div class="faq-question flex justify-between items-center cursor-pointer py-2">
+                            <h3 class="text-xl font-semibold">Como funciona o formato online?</h3>
+                            <span class="faq-arrow text-[#4B3F8F]">
+                                 <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="3" stroke="currentColor" class="w-6 h-6"><path stroke-linecap="round" stroke-linejoin="round" d="M19.5 8.25l-7.5 7.5-7.5-7.5" /></svg>
+                            </span>
+                        </div>
+                        <div class="faq-answer px-2 text-lg text-[#1A2A4C]/80">
+                            <p class="text-justify">O formato online consiste em 8 encontros ao vivo realizados através da plataforma Zoom.</p>
+                        </div>
+                    </div>
+                     <!-- Pergunta 4 -->
+                    <div class="faq-item border-b border-gray-300 pb-4">
+                        <div class="faq-question flex justify-between items-center cursor-pointer py-2">
+                            <h3 class="text-xl font-semibold">Receberei um certificado de conclusão?</h3>
+                            <span class="faq-arrow text-[#4B3F8F]">
+                                 <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="3" stroke="currentColor" class="w-6 h-6"><path stroke-linecap="round" stroke-linejoin="round" d="M19.5 8.25l-7.5 7.5-7.5-7.5" /></svg>
+                            </span>
+                        </div>
+                        <div class="faq-answer px-2 text-lg text-[#1A2A4C]/80">
+                            <p class="text-justify">Sim, ao final do curso, todos os participantes que completarem os encontros receberão um certificado digital de participação.</p>
+                        </div>
+                    </div>
+                </div>
+                 <a href="/inscricao.html" class="cta-button inline-block mt-12 text-white bg-[#5DBA8B] hover:bg-[#4A9E75] font-bold py-4 px-10 rounded-xl text-lg shadow-lg">
+                    Quero garantir a minha vaga!
+                </a>
+            </div>
+        </section>
+
+        <!-- Secção Final de CTA -->
+        <footer class="text-center py-20 px-6 bg-white">
+            <div class="max-w-4xl mx-auto">
+                <h2 class="text-4xl md:text-5xl font-black text-[#1A2A4C] tracking-tight">AINDA COM DÚVIDAS?</h2>
+                <p class="mt-4 text-xl text-[#1A2A4C]/80">A nossa equipe está pronta para ajudar. Clique no botão abaixo e fale conosco diretamente no WhatsApp!</p>
+                <a href="https://wa.me/555189316671" target="_blank" rel="noopener noreferrer" class="cta-button inline-block mt-8 text-white bg-[#4B3F8F] hover:bg-[#3A2F6F] font-bold py-4 px-10 rounded-xl text-lg shadow-lg">
+                    Falar com a equipe no WhatsApp
+                </a>
+                 <p class="text-center mt-16 text-sm text-[#1A2A4C]/60">&copy; 2025 Fazendo as pazes com seu TDAH. Todos os direitos reservados.</p>
+            </div>
         </footer>
 
     </div>
 
     <script>
-        // --- CONSTANTES E VARIÁVEIS GLOBAIS ---
-        const CONTRACT_VERSION = 'v1.0';
-        const CONTRACT_HASH = '88559760E4DAF2CEF94D9F5B7069CBCC9A5196106CD771227DB2500EFFBEDD0E';
-        const form = document.getElementById('enrollment-form');
-        const submitButton = document.getElementById('submit-button');
-        const buttonText = submitButton.querySelector('.button-text');
-        const buttonLoader = submitButton.querySelector('.loader');
-        const messageContainer = document.getElementById('message-container');
-        
-        const cepInput = document.getElementById('cep');
-        const addressInput = document.getElementById('address');
-        const bairroInput = document.getElementById('bairro');
-        const cityInput = document.getElementById('city');
-        const addressNumberInput = document.getElementById('addressNumber');
+        // Lógica para o FAQ (acordeão)
+        const faqContainer = document.getElementById('faq-container');
+        faqContainer.addEventListener('click', function(e) {
+            const question = e.target.closest('.faq-question');
+            if (!question) return;
 
-        const paymentMethodRadios = document.querySelectorAll('input[name="paymentMethod"]');
-        const installmentsSelect = document.getElementById('installments');
-        const modalityRadios = document.querySelectorAll('input[name="modality"]');
-
-        const couponInput = document.getElementById('coupon');
-        const applyCouponBtn = document.getElementById('apply-coupon-btn');
-        const couponMessage = document.getElementById('coupon-message');
-
-        const coursePrices = {
-            Online: { BOLETO: 800.00, CREDIT_CARD: { 1: 830.00, 2: 830.97, 3: 831.48, 4: 831.99, 5: 832.49 }},
-            Presencial: { BOLETO: 900.00, CREDIT_CARD: { 1: 930.00, 2: 934.59, 3: 935.09, 4: 935.60, 5: 936.11 }}
-        };
-
-        const validCoupons = {
-            'PAZES15': 0.15,
-            'PALESTRA10': 0.10
-        };
-
-        let currentDiscount = 0;
-
-        // --- FUNÇÕES AUXILIARES ---
-        const digits = s => (s || '').replace(/\D/g, '');
-        const formatCurrency = value => `R$ ${value.toFixed(2).replace('.', ',')}`;
-        
-        // --- LÓGICA DE ATUALIZAÇÃO DA UI ---
-        function updateInstallmentOptions() {
-            const selectedMethod = document.querySelector('input[name="paymentMethod"]:checked').value;
-            const selectedModality = document.querySelector('input[name="modality"]:checked').value;
-            const pricesForModality = coursePrices[selectedModality];
+            const faqItem = question.parentElement;
             
-            installmentsSelect.innerHTML = ''; 
-
-            const calculateDiscountedPrice = (price) => price * (1 - currentDiscount);
-
-            if (selectedMethod === 'CREDIT_CARD') {
-                const creditCardPrices = pricesForModality.CREDIT_CARD;
-                for (const numInstallments in creditCardPrices) {
-                    const option = document.createElement('option');
-                    option.value = numInstallments;
-                    const totalPrice = calculateDiscountedPrice(creditCardPrices[numInstallments]);
-                    const totalFormatted = formatCurrency(totalPrice);
-                    const installmentText = numInstallments > 1 ? ` (Apenas Cartão de Crédito)` : ` (Cartão de Crédito ou Débito)`;
-                    if (numInstallments == 1) {
-                        option.textContent = `1x de ${totalFormatted} (à vista)${installmentText}`;
-                    } else {
-                        const installmentValue = formatCurrency(totalPrice / numInstallments);
-                        option.textContent = `${numInstallments}x de ${installmentValue} (Total: ${totalFormatted})${installmentText}`;
-                    }
-                    installmentsSelect.appendChild(option);
+            // Fecha todos os itens abertos, exceto o clicado
+            const openItems = faqContainer.querySelectorAll('.faq-item.active');
+            openItems.forEach(item => {
+                if (item !== faqItem) {
+                    item.classList.remove('active');
                 }
-            } else { // BOLETO
-                const option = document.createElement('option');
-                option.value = 1;
-                const totalPrice = calculateDiscountedPrice(pricesForModality.BOLETO); 
-                option.textContent = `1x de ${formatCurrency(totalPrice)} (à vista)`;
-                installmentsSelect.appendChild(option);
-            }
-        }
+            });
 
-        async function fetchAddress(cep) {
-            addressInput.value = 'Buscando...';
-            bairroInput.value = 'Buscando...';
-            cityInput.value = 'Buscando...';
-            [addressInput, bairroInput, cityInput].forEach(el => el.classList.add('address-loading'));
-
-            try {
-                const response = await fetch(`https://viacep.com.br/ws/${cep}/json/`);
-                const data = await response.json();
-
-                if (data.erro) {
-                    throw new Error('CEP não encontrado.');
-                }
-
-                addressInput.value = data.logradouro;
-                bairroInput.value = data.bairro;
-                cityInput.value = `${data.localidade} - ${data.uf}`;
-                addressNumberInput.focus(); 
-
-            } catch (error) {
-                [addressInput, bairroInput, cityInput].forEach(el => el.value = '');
-                messageContainer.textContent = error.message;
-            } finally {
-                [addressInput, bairroInput, cityInput].forEach(el => el.classList.remove('address-loading'));
-            }
-        }
-
-        // --- EVENT LISTENERS ---
-        paymentMethodRadios.forEach(radio => radio.addEventListener('change', updateInstallmentOptions));
-        modalityRadios.forEach(radio => radio.addEventListener('change', updateInstallmentOptions));
-        
-        cepInput.addEventListener('blur', (event) => {
-            const cep = digits(event.target.value);
-            if (cep.length === 8) {
-                fetchAddress(cep);
-            }
+            // Alterna o estado do item clicado
+            faqItem.classList.toggle('active');
         });
-
-        couponInput.addEventListener('input', (event) => {
-            let value = event.target.value;
-            value = value.toUpperCase().replace(/[^A-Z0-9]/g, '');
-            event.target.value = value;
-        });
-
-        applyCouponBtn.addEventListener('click', () => {
-            const couponCode = couponInput.value.toUpperCase();
-            if (validCoupons[couponCode]) {
-                currentDiscount = validCoupons[couponCode];
-                couponMessage.textContent = `Desconto de ${currentDiscount * 100}% aplicado!`;
-                couponMessage.classList.remove('text-red-600');
-                couponMessage.classList.add('text-green-600');
-            } else {
-                currentDiscount = 0;
-                couponMessage.textContent = 'Cupom inválido.';
-                couponMessage.classList.remove('text-green-600');
-                couponMessage.classList.add('text-red-600');
-            }
-            updateInstallmentOptions();
-        });
-
-        form.addEventListener('submit', async (event) => {
-            event.preventDefault();
-            messageContainer.textContent = '';
-
-            submitButton.disabled = true;
-            buttonText.classList.add('hidden');
-            buttonLoader.classList.remove('hidden');
-
-            const formData = new FormData(form);
-            const data = {
-                name: formData.get('name'),
-                email: formData.get('email'),
-                cpf: digits(formData.get('cpf')),
-                phone: digits(formData.get('phone')),
-                cep: digits(formData.get('cep')),
-                address: formData.get('address'),
-                addressNumber: formData.get('addressNumber'),
-                complement: formData.get('complement'),
-                bairro: formData.get('bairro'),
-                city: formData.get('city'),
-                modality: formData.get('modality'),
-                paymentMethod: formData.get('paymentMethod'),
-                installments: formData.get('installments'),
-                objective: formData.get('objective'),
-                source: formData.get('source'),
-                coupon: couponInput.value.toUpperCase(), // Garante que o cupom enviado é o aplicado
-                contract: formData.get('contract') === 'on',
-                contractVersion: CONTRACT_VERSION,
-                contractHash: CONTRACT_HASH
-            };
-            
-            try {
-                const res = await fetch('/.netlify/functions/checkout', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(data),
-                });
-                
-                const txt = await res.text();
-                let result = {};
-                try { result = JSON.parse(txt); } catch {}
-                if (!res.ok) throw new Error(result.error || txt || 'Ocorreu um erro. Tente novamente.');
-                
-                window.location.href = result.paymentUrl;
-                                        
-            } catch (error) {
-                messageContainer.textContent = error.message;
-                submitButton.disabled = false;
-                buttonText.classList.remove('hidden');
-                buttonLoader.classList.add('hidden');
-            }
-        });
-
-        // --- INICIALIZAÇÃO ---
-        updateInstallmentOptions();
     </script>
 </body>
 </html>
