@@ -133,7 +133,7 @@ exports.handler = async (event) => {
         }
         
         let totalInstallments = 1;
-        const asaasApiUrl = 'https://api.asaas.com/api/v3'; // URL DE PRODUÇÃO
+        const asaasApiUrl = 'https://www.asaas.com/api/v3'; // URL DE PRODUÇÃO CORRIGIDA
 
         if (paymentData.installment) {
             const installmentDetails = await axios.get(`${asaasApiUrl}/installments/${paymentData.installment}`, {
