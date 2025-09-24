@@ -4,7 +4,7 @@ const axios = require('axios');
 // Estrutura de preços detalhada
 const coursePrices = {
     Online: { 
-        BOLETO: 5.00, 
+        BOLETO: 800.00, 
         CREDIT_CARD: { 1: 830.00, 2: 830.97, 3: 831.48, 4: 831.99, 5: 832.49 }
     },
     Presencial: { 
@@ -143,6 +143,7 @@ exports.handler = async (event) => {
         };
     }
 };
+
 
 
 
