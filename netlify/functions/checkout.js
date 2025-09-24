@@ -1,7 +1,7 @@
 // Importa a biblioteca axios para fazer requisições HTTP
 const axios = require('axios');
 
-// Estrutura de preços detalhada - Limite de 5 parcelas
+// Estrutura de preços detalhada
 const coursePrices = {
     Online: { 
         BOLETO: 800.00, 
@@ -13,7 +13,6 @@ const coursePrices = {
     }
 };
 
-// --- CUPONS VÁLIDOS ---
 const validCoupons = {
     'PAZES15': 0.15,
     'PALESTRA10': 0.10
@@ -39,12 +38,10 @@ exports.handler = async (event) => {
             contract, contractVersion, contractHash 
         } = data;
 
-        // Validação dos dados essenciais (simplificada para brevidade)
         if (!name || !email || !cpf || !phone || !modality || !paymentMethod || !installments || !objective || !source) {
             return { statusCode: 400, body: JSON.stringify({ error: 'Todos os campos são obrigatórios.' }) };
         }
 
-        // Validação do contrato
         if (!contract || contractVersion !== ACCEPTED_CONTRACT_VERSION || contractHash !== ACCEPTED_CONTRACT_HASH) {
             return { statusCode: 400, body: JSON.stringify({ error: 'Você deve aceitar a versão mais recente do contrato.' }) };
         }
@@ -76,7 +73,7 @@ exports.handler = async (event) => {
         if (!ASAAS_API_KEY) throw new Error("Chave da API do Asaas não configurada.");
         const asaasApiUrl = 'https://sandbox.asaas.com/api/v3';
         const dueDate = new Date(new Date().setDate(new Date().getDate() + 5)).toISOString().split('T')[0];
-        
+
         const objectiveMap = { "Profissional da saúde": "prof", "Tenho TDAH": "pessoal", "Convivo com TDAH": "convivo" };
         const sourceMap = { "Instagram": "insta", "Indicação de amigos": "amigos" };
 
@@ -104,7 +101,7 @@ exports.handler = async (event) => {
             const customerPayload = { name, email, cpfCnpj: cpf, mobilePhone: phone, postalCode: cep, address, addressNumber, complement, province: bairro };
             const customerResponse = await axios.post(`${asaasApiUrl}/customers`, customerPayload, { headers: { 'access_token': ASAAS_API_KEY }});
             payload.customer = customerResponse.data.id;
-
+            
             if (installments > 1) {
                 payload.installmentCount = installments;
                 payload.installmentValue = parseFloat((coursePrice / installments).toFixed(2));
@@ -121,7 +118,23 @@ exports.handler = async (event) => {
 
     } catch (error) {
         console.error('Erro ao criar checkout:', error.response ? error.response.data : error.message);
-        return { statusCode: 500, body: JSON.stringify({ error: 'Não foi possível gerar o link de pagamento. Tente novamente mais tarde.' }) };
+        
+        // --- NOVA LÓGICA DE TRATAMENTO DE ERRO ---
+        if (error.response && error.response.data && error.response.data.errors) {
+            const asaasError = error.response.data.errors[0].description;
+            if (asaasError.includes('CPF') || asaasError.includes('CNPJ')) {
+                return {
+                    statusCode: 400, 
+                    body: JSON.stringify({ error: 'CPF inválido. Por favor, verifique o número digitado.' }),
+                };
+            }
+        }
+        // ------------------------------------------
+
+        return {
+            statusCode: 500,
+            body: JSON.stringify({ error: 'Não foi possível gerar o link de pagamento. Tente novamente mais tarde.' }),
+        };
     }
 };
 
