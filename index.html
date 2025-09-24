@@ -217,7 +217,8 @@
         };
 
         const validCoupons = {
-            'PAZES15': 0.15 // 15% de desconto
+            'PAZES15': 0.15, // 15% de desconto
+            'PALESTRA10': 0.10 // 10% de desconto
         };
         
         // --- FUNÇÕES AUXILIARES ---
@@ -316,8 +317,10 @@
 
         applyCouponBtn.addEventListener('click', () => {
             const couponCode = couponInput.value.trim().toUpperCase();
-            if (validCoupons[couponCode]) {
-                couponMessage.textContent = 'Desconto de 15% aplicado!';
+            const discount = validCoupons[couponCode];
+            if (discount) {
+                const discountPercentage = (discount * 100).toFixed(0);
+                couponMessage.textContent = `Desconto de ${discountPercentage}% aplicado!`;
                 couponMessage.className = 'mt-2 text-sm text-green-600';
             } else {
                 couponInput.value = ''; // Limpa o campo se for inválido
