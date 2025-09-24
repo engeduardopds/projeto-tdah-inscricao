@@ -39,16 +39,16 @@ async function sendWelcomeEmail(customerData) {
         });
 
         const mailOptions = {
-            from: `Fazendo as Pazes com o TDAH <${process.env.GMAIL_ADDRESS}>`,
+            from: `Fazendo as pazes com seu TDAH <${process.env.GMAIL_ADDRESS}>`,
             to: customerData.email,
-            subject: 'Bem-vindo(a) ao Curso "Fazendo as Pazes com o seu TDAH"!',
+            subject: 'Bem-vindo(a) ao Curso "Fazendo as pazes com seu TDAH"!',
             html: `
                 <div style="font-family: Arial, sans-serif; line-height: 1.6;">
                     <h2>Olá, ${customerData.name}!</h2>
-                    <p>Sua inscrição no curso <strong>Fazendo as Pazes com o seu TDAH</strong> foi confirmada com sucesso!</p>
+                    <p>Sua inscrição no curso <strong>Fazendo as pazes com seu TDAH</strong> foi confirmada com sucesso!</p>
                     <p>Estamos muito felizes em ter você conosco nesta jornada de aprendizado e bem-estar.</p>
                     <p>Em breve, você receberá mais informações sobre o acesso ao material do curso e as datas importantes.</p>
-                    <p>Atenciosamente,<br>Equipe Fazendo as Pazes com o seu TDAH</p>
+                    <p>Atenciosamente,<br>Equipe Fazendo as pazes com seu TDAH</p>
                 </div>
             `,
         };
@@ -135,15 +135,18 @@ exports.handler = async (event) => {
             return ok({ received: true, ignored: true, reason: 'Subsequent installment' });
         }
         
+        // Retornado para o ambiente de Sandbox para testes. Lembre-se de mudar para produção!
+        const asaasApiUrl = 'https://sandbox.asaas.com/api/v3';
+
         let totalInstallments = 1;
         if (paymentData.installment) {
-            const installmentDetails = await axios.get(`https://sandbox.asaas.com/api/v3/installments/${paymentData.installment}`, {
+            const installmentDetails = await axios.get(`${asaasApiUrl}/installments/${paymentData.installment}`, {
                 headers: { 'access_token': process.env.ASAAS_API_KEY }
             });
             totalInstallments = installmentDetails.data.installmentCount;
         }
 
-        const customerResponse = await axios.get(`https://sandbox.asaas.com/api/v3/customers/${paymentData.customer}`, {
+        const customerResponse = await axios.get(`${asaasApiUrl}/customers/${paymentData.customer}`, {
             headers: { 'access_token': process.env.ASAAS_API_KEY }
         });
         const customerData = customerResponse.data;
