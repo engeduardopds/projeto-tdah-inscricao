@@ -14,7 +14,6 @@ const coursePrices = {
 };
 
 // --- CUPONS VÁLIDOS ---
-// A chave é o código do cupom (em maiúsculas) e o valor é o desconto (0.15 = 15%)
 const validCoupons = {
     'PAZES15': 0.15,
     'PALESTRA10': 0.10
@@ -30,6 +29,10 @@ exports.handler = async (event) => {
     }
 
     try {
+        // --- CAPTURA DO IP ---
+        // O Netlify fornece o IP do cliente no cabeçalho 'x-nf-client-connection-ip'
+        const clientIp = event.headers['x-nf-client-connection-ip'] || 'IP Não Encontrado';
+
         const data = JSON.parse(event.body);
         const { 
             name, email, cpf, phone, 
@@ -68,13 +71,12 @@ exports.handler = async (event) => {
             return { statusCode: 400, body: JSON.stringify({ error: 'Opção de pagamento ou parcelamento inválida.' }) };
         }
         
-        // --- VALIDAÇÃO E APLICAÇÃO DO CUPOM ---
+        // VALIDAÇÃO E APLICAÇÃO DO CUPOM
         const discountPercentage = validCoupons[coupon.toUpperCase()] || 0;
         if (discountPercentage > 0) {
             coursePrice *= (1 - discountPercentage);
         }
-        // ------------------------------------
-
+        
         const ASAAS_API_KEY = process.env.ASAAS_API_KEY;
         if (!ASAAS_API_KEY) throw new Error("Chave da API do Asaas não configurada.");
         const asaasApiUrl = 'https://sandbox.asaas.com/api/v3';
@@ -86,7 +88,10 @@ exports.handler = async (event) => {
             value: coursePrice,
             dueDate,
             description: `Inscrição no curso "Fazendo as Pazes com o seu TDAH" - Modalidade ${modality}`,
-            externalReference: JSON.stringify({ objective, source, coupon: coupon.toUpperCase() || '' }),
+            // --- REGISTO DO IP E OUTROS DADOS ---
+            // Guardamos o IP na externalReference para o nosso registo e no remoteIp para o Asaas
+            externalReference: JSON.stringify({ objective, source, coupon: coupon.toUpperCase() || '', clientIp }),
+            remoteIp: clientIp, 
             callback: {
                 successUrl: `${process.env.URL}/obrigado/`,
                 autoRedirect: true,
@@ -95,12 +100,10 @@ exports.handler = async (event) => {
 
         // Lógica de parcelamento e criação de cliente
         if (paymentMethod === 'CREDIT_CARD') {
-            // 1. Criar/encontrar o cliente primeiro
             const customerPayload = { name, email, cpfCnpj: cpf, mobilePhone: phone, postalCode: cep, address, addressNumber, complement, province: bairro };
             const customerResponse = await axios.post(`${asaasApiUrl}/customers`, customerPayload, { headers: { 'access_token': ASAAS_API_KEY }});
             payload.customer = customerResponse.data.id;
 
-            // 2. Adicionar dados de parcelamento se for > 1
             if (installments > 1) {
                 payload.installmentCount = installments;
                 payload.installmentValue = parseFloat((coursePrice / installments).toFixed(2));
