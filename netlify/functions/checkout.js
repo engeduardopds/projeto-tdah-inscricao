@@ -71,7 +71,11 @@ exports.handler = async (event) => {
         
         const ASAAS_API_KEY = process.env.ASAAS_API_KEY;
         if (!ASAAS_API_KEY) throw new Error("Chave da API do Asaas não configurada.");
+        
+        // --- ALTERAÇÃO PARA PRODUÇÃO ---
         const asaasApiUrl = 'https://sandbox.asaas.com/api/v3';
+        // -----------------------------
+
         const dueDate = new Date(new Date().setDate(new Date().getDate() + 5)).toISOString().split('T')[0];
 
         const objectiveMap = { "Profissional da saúde": "prof", "Tenho TDAH": "pessoal", "Convivo com TDAH": "convivo" };
@@ -99,8 +103,24 @@ exports.handler = async (event) => {
 
         if (paymentMethod === 'CREDIT_CARD') {
             const customerPayload = { name, email, cpfCnpj: cpf, mobilePhone: phone, postalCode: cep, address, addressNumber, complement, province: bairro };
-            const customerResponse = await axios.post(`${asaasApiUrl}/customers`, customerPayload, { headers: { 'access_token': ASAAS_API_KEY }});
-            payload.customer = customerResponse.data.id;
+            
+            let customerId;
+            try {
+                 // Tenta criar o cliente
+                const customerResponse = await axios.post(`${asaasApiUrl}/customers`, customerPayload, { headers: { 'access_token': ASAAS_API_KEY }});
+                customerId = customerResponse.data.id;
+            } catch (customerError) {
+                // Se o cliente já existe (identificado pelo CPF), o Asaas devolve um erro.
+                // Podemos então procurar pelo cliente para obter o seu ID.
+                if (customerError.response && customerError.response.data.errors[0].code === 'customer_already_exists') {
+                    const searchResponse = await axios.get(`${asaasApiUrl}/customers?cpfCnpj=${cpf}`, { headers: { 'access_token': ASAAS_API_KEY }});
+                    customerId = searchResponse.data.data[0].id;
+                } else {
+                    // Se for outro erro, propaga-o.
+                    throw customerError;
+                }
+            }
+            payload.customer = customerId;
             
             if (installments > 1) {
                 payload.installmentCount = installments;
@@ -119,23 +139,21 @@ exports.handler = async (event) => {
     } catch (error) {
         console.error('Erro ao criar checkout:', error.response ? error.response.data : error.message);
         
-        // --- LÓGICA DE TRATAMENTO DE ERRO MELHORADA ---
         if (error.response && error.response.data && error.response.data.errors) {
-            const asaasError = error.response.data.errors[0].description.toLowerCase(); // Converte para minúsculas para facilitar a correspondência
+            const asaasError = error.response.data.errors[0].description.toLowerCase();
 
             if (asaasError.includes('cpf') || asaasError.includes('cnpj')) {
                 return {
                     statusCode: 400, 
                     body: JSON.stringify({ error: 'CPF inválido. Acontece! Por favor, verifique o número. Nosso curso pode ajudar com esses pequenos deslizes.' }),
                 };
-            } else if (asaasError.includes('email')) { // Verifica se o erro menciona "email"
+            } else if (asaasError.includes('email')) {
                  return {
                     statusCode: 400, 
                     body: JSON.stringify({ error: 'E-mail inválido. Por favor, verifique o endereço digitado. Nosso curso pode ajudar com esses pequenos deslizes.' }),
                 };
             }
         }
-        // ------------------------------------------
 
         return {
             statusCode: 500,
