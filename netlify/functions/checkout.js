@@ -17,7 +17,7 @@ const validCoupons = {
     'PALESTRA10': 0.10
 };
 
-const ACCEPTED_CONTRACT_VERSION = 'v1.0';
+const ACCEPTED_CONTRACT_VERSION = 'v1.1';
 const ACCEPTED_CONTRACT_HASH = '88559760E4DAF2CEF94D9F5B7069CBCC9A5196106CD771227DB2500EFFBEDD0E';
 
 
@@ -142,6 +142,7 @@ exports.handler = async (event) => {
         };
     }
 };
+
 
 
 
