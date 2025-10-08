@@ -14,7 +14,6 @@ const coursePrices = {
 };
 
 const validCoupons = {
-    'PAZES15': 0.15,
     'PALESTRA10': 0.10
 };
 
@@ -143,6 +142,7 @@ exports.handler = async (event) => {
         };
     }
 };
+
 
 
 
