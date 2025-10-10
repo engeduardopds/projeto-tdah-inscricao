@@ -124,25 +124,32 @@ exports.handler = async (event) => {
         const paymentData = notification.payment || {};
         const eventType = notification.event;
 
+        // Validação do evento - processar apenas pagamentos confirmados/recebidos
         if (eventType !== 'PAYMENT_CONFIRMED' && eventType !== 'PAYMENT_RECEIVED') {
             return ok({ received: true, ignored: true, reason: 'Event type not processed' });
         }
+        
+        // --- NOVO FILTRO PARA PROCESSAR APENAS PAGAMENTOS DO CURSO ---
+        const isCoursePayment = paymentData.description && paymentData.description.includes('Inscrição no curso');
+        if (!isCoursePayment) {
+            console.log(`Ignorando pagamento (${paymentData.id}) não relacionado ao curso.`);
+            return ok({ received: true, ignored: true, reason: 'Payment not related to the course' });
+        }
+        // -------------------------------------------------------------
 
         if (paymentData.installmentNumber && paymentData.installmentNumber > 1) {
             return ok({ received: true, ignored: true, reason: 'Subsequent installment' });
         }
         
         let totalInstallments = 1;
-        const asaasApiUrl = 'https://www.asaas.com/api/v3'; // URL DE PRODUÇÃO CORRIGIDA
-
         if (paymentData.installment) {
-            const installmentDetails = await axios.get(`${asaasApiUrl}/installments/${paymentData.installment}`, {
+            const installmentDetails = await axios.get(`https://www.asaas.com/api/v3/installments/${paymentData.installment}`, {
                 headers: { 'access_token': process.env.ASAAS_API_KEY }
             });
             totalInstallments = installmentDetails.data.installmentCount;
         }
 
-        const customerResponse = await axios.get(`${asaasApiUrl}/customers/${paymentData.customer}`, {
+        const customerResponse = await axios.get(`https://www.asaas.com/api/v3/customers/${paymentData.customer}`, {
             headers: { 'access_token': process.env.ASAAS_API_KEY }
         });
         const customerData = customerResponse.data;
